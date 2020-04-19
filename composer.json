@@ -4,5 +4,16 @@
     "require":{
         "php": ">=7.1.0",
         "phpmailer/phpmailer":"~6.1" 
+    },
+    "autoload":{
+        "psr-4":{
+            "InteracitvePlus\\PDK2020Core\\": "src/",
+            "InteractivePlus\\PDK2020Core\\User\\": "src/user"
+        }
+    },
+    "autoload-dev":{
+        "psr-4":{
+            "InteractivePlus\\PDK2020Test\\": "test/"
+        }
     }
 }
