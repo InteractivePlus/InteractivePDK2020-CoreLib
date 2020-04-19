@@ -1,4 +1,8 @@
 {
     "name": "interactiveplus/interactivepdk-2020-corelib",
-    "description": ""
+    "description": "Core Support Library for InteractivePlus's New Identity Provider System",
+    "require":{
+        "php": ">=7.1.0",
+        "phpmailer/phpmailer":"~6.1" 
+    }
 }
