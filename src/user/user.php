@@ -5,8 +5,8 @@ class User{
     private int $_dataTime = 0;
 
     private $_username;
-    public $display_name;
-    public $signature;
+    private $_display_name;
+    private $_signature;
     private $_password_hash;
     private $_email;
     private $_phone_numer;
@@ -22,13 +22,27 @@ class User{
     public $avatar_md5;
     
     public function available() : bool{
-        return $_dataTime !== 0;
+        return $this->$_dataTime !== 0;
     }
+
+    public function getLastFetchDataTime() : int{
+        return $this->$_dataTime;
+    }
+
+    public function getUsername() : string{
+        return $this->$_username;
+    }
+
+    public function getDisplayName() : string{
+        return $this->$_display_name;
+    }
+
+    
 
     public function readFromDataRow(array $DataRow) : void{
         $this->$_username = $DataRow['username'];
         $this->$_display_name = $DataRow['display_name'];
-        $this->$signature = $DataRow['signature'];
+        $this->$_signature = $DataRow['signature'];
         $this->$_password_hash = $DataRow['password'];
         $this->$_email = $DataRow['email'];
         $this->$_phone_numer = $DataRow['phone_number'];
@@ -49,7 +63,7 @@ class User{
         $savedArray = array(
             'username' => $this->$_username,
             'display_name' => $this->$_display_name,
-            'signature' => $this->$signature,
+            'signature' => $this->$_signature,
             'password' => $this->$_password_hash,
             'email' => $this->$_email,
             'phone_number' => $this->$_phone_numer,
