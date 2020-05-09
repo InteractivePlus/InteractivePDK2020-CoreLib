@@ -81,4 +81,3 @@ class User{
         return $savedArray;
     }
 }
-?>
