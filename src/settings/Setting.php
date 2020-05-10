@@ -1,33 +1,35 @@
 <?php
 namespace InteractivePlus\PDK2020Core\Settings;
 
-function getPDKSetting(string $item){
-    return constant(__NAMESPACE__ . '\\' . $item);
+class Setting{
+    public static function getPDKSetting(string $item){
+        return constant(__NAMESPACE__ . '\\' . $item);
+    }
+
+    public static function setPDKSetting(string $item, $value) : void{
+        define(__NAMESPACE__ . '\\' . $item, $value);
+    }
 }
 
-function setPDKSetting(string $item, $value) : void{
-    define(__NAMESPACE__ . '\\' . $item, $value);
-}
-
-setPDKSetting('USERNAME_MINLEN',1);
-setPDKSetting('USERNAME_MAXLEN', 20);
-setPDKSetting('USERNAME_REGEX','');
-setPDKSetting('DISPLAYNAME_MINLEN', 1);
-setPDKSetting('DISPLAYNAME_MAXLEN', 15);
-setPDKSetting('DISPLAYNAME_REGEX','');
-setPDKSetting('SIGNATURE_MAXLEN', 40);
-setPDKSetting('SIGNATURE_REGEX','');
-setPDKSetting('EMAIL_MAXLEN',50);
-setPDKSetting('PASSWORD_MINLEN', 5);
-setPDKSetting('PASSWORD_MAXLEN', 40);
-setPDKSetting('PASSWORD_REGEX','');
-setPDKSetting('LOGIN_SINGLEIPMAXTRIAL_COUNT', 2);
-setPDKSetting('LOGIN_SINGLEIPMAXTRIAL_DURATION', 120); //2 mins
-setPDKSetting('AVATOR_MAX_SIZE', 200); //In kB
-setPDKSetting('PASSWORD_SALT', "");
-setPDKSetting('TOKEN_SALT', "");
-setPDKSetting('VERIFICATION_CODE_SALT', "");
-setPDKSetting('TOKEN_AVAILABLE_DURATION', 3600);
-setPDKSetting('VERIFICATION_CODE_AVAILABLE_DURATION', 300); //5 mins
-setPDKSetting('DEFAULT_COUNTRY','CN');
-setPDKSetting('DEFAULT_LOCALE','zh_CN');
+Setting::setPDKSetting('USERNAME_MINLEN',1);
+Setting::setPDKSetting('USERNAME_MAXLEN', 20);
+Setting::setPDKSetting('USERNAME_REGEX','');
+Setting::setPDKSetting('DISPLAYNAME_MINLEN', 1);
+Setting::setPDKSetting('DISPLAYNAME_MAXLEN', 15);
+Setting::setPDKSetting('DISPLAYNAME_REGEX','');
+Setting::setPDKSetting('SIGNATURE_MAXLEN', 40);
+Setting::setPDKSetting('SIGNATURE_REGEX','');
+Setting::setPDKSetting('EMAIL_MAXLEN',50);
+Setting::setPDKSetting('PASSWORD_MINLEN', 5);
+Setting::setPDKSetting('PASSWORD_MAXLEN', 40);
+Setting::setPDKSetting('PASSWORD_REGEX','');
+Setting::setPDKSetting('LOGIN_SINGLEIPMAXTRIAL_COUNT', 2);
+Setting::setPDKSetting('LOGIN_SINGLEIPMAXTRIAL_DURATION', 120); //2 mins
+Setting::setPDKSetting('AVATOR_MAX_SIZE', 200); //In kB
+Setting::setPDKSetting('PASSWORD_SALT', "");
+Setting::setPDKSetting('TOKEN_SALT', "");
+Setting::setPDKSetting('VERIFICATION_CODE_SALT', "");
+Setting::setPDKSetting('TOKEN_AVAILABLE_DURATION', 3600);
+Setting::setPDKSetting('VERIFICATION_CODE_AVAILABLE_DURATION', 300); //5 mins
+Setting::setPDKSetting('DEFAULT_COUNTRY','CN');
+Setting::setPDKSetting('DEFAULT_LOCALE','zh_CN');

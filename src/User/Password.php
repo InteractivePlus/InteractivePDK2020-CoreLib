@@ -12,6 +12,6 @@ class Password{
         }
     }
     public static function encryptPassword(string $password) : string{
-        return hash('sha256',$password . \InteractivePlus\PDK2020Core\Settings\getPDKSetting('PASSWORD_SALT'));
+        return hash('sha256',$password . \InteractivePlus\PDK2020Core\Settings\Setting::getPDKSetting('PASSWORD_SALT'));
     }
 }

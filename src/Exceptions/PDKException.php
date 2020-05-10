@@ -6,10 +6,13 @@ class PDKException extends \Exception{
         $this->err_params = $errParams;
         parent::__construct($message,$code,null,$previous);
     }
-    public function getErrorParams(){
+    public function getErrorParams() : array{
         return $this->err_params;
     }
-    public function __toString(){
+    public function __toString() : string{
+        return $this->toReponseJSON();
+    }
+    public function toReponseJSON() : string{
         $response_Array = array(
             'errorCode' => $this->getCode(),
             'errorDescription' => $this->getMessage(),
