@@ -8,6 +8,11 @@ class DataUtil{
                 $returnArray[$newKey] = $newVal;
             }
         }
+        foreach($oldDataArray as $oldKey => $oldVal){
+            if($oldVal !== $newDataArray[$oldKey]){
+                $returnArray[$oldKey] = $newDataArray[$oldKey];
+            }
+        }
         return $returnArray;
     }
 }

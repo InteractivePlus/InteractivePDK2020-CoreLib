@@ -33,6 +33,9 @@ class User_Verification{
         );
     }
     public static function verifySignature(string $signature) : bool{
+        if(empty($signature)){
+            return true;
+        }
         return self::verifyString(
             $signature,
             0,

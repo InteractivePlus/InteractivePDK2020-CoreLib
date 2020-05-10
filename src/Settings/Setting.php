@@ -33,3 +33,10 @@ Setting::setPDKSetting('TOKEN_AVAILABLE_DURATION', 3600);
 Setting::setPDKSetting('VERIFICATION_CODE_AVAILABLE_DURATION', 300); //5 mins
 Setting::setPDKSetting('DEFAULT_COUNTRY','CN');
 Setting::setPDKSetting('DEFAULT_LOCALE','zh_CN');
+Setting::setPDKSetting(
+    'DEFAULT_GROUP_PERMISSION',
+    array(
+        'createApp' => false,
+        'numAppLimit' => 1
+    )
+);

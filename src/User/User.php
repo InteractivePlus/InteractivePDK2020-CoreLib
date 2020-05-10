@@ -2,13 +2,14 @@
 namespace InteractivePlus\PDK2020Core\User;
 
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
+use InteractivePlus\PDK2020Core\UserGroup\UserGroup;
 use MysqliDb;
 use InteractivePlus\PDK2020Core\Utils\MultipleQueryResult;
 use libphonenumber\PhoneNumber;
 
 class User{
     protected $_Database;
-    private int $_dataTime = 0;
+    private $_dataTime = 0;
     private $_lastDataArray = NULL;
 
     private $_username = NULL;
@@ -22,7 +23,7 @@ class User{
     public $phone_verified = false;
     private $_permission_override_array = array();
     private $_group = NULL;
-    public $regtime;
+    public $regtime = 0;
     public $is_admin = false;
     public $avatar_md5 = NULL;
     public $is_frozen = false;
@@ -32,10 +33,6 @@ class User{
     private function __construct(){
 
     }
-    
-    public function available() : bool{
-        return $this->_dataTime !== 0;
-    }
 
     public function getLastFetchDataTime() : int{
         return $this->_dataTime;
@@ -43,6 +40,37 @@ class User{
 
     public function getUsername() : string{
         return $this->_username;
+    }
+
+    public function changeUserName(string $newUserName) : void{
+        if(!User_Verification::verifyUsername($newUserName)){
+            throw new PDKException(30002,'Username format incorrect',array('credential'=>'username'));
+        }
+        if($newUserName == $this->_username){
+            return;
+        }
+        if(self::checkUsernameExist($this->_Database,$newUserName)){
+            throw new PDKException(10004,'Username already exist');
+        }
+        if(!$this->_createNewUser){
+            //Update Database
+            $this->_Database->where('username',$this->_username);
+            $differenceArray = array(
+                'username' => $newUserName
+            );
+            $updateRst = $this->_Database->update('user_infos',$differenceArray);
+            if(!$updateRst){
+                throw new PDKException(
+                    50007,
+                    'User update error',
+                    array(
+                        'errNo'=>$this->_Database->getLastErrno(),
+                        'errMsg'=>$this->_Database->getLastError()
+                    )
+                );
+            }
+        }
+        $this->_username = $newUserName;
     }
 
     public function getDisplayName() : string{
@@ -190,19 +218,20 @@ class User{
         $this->setPermissionOverrideItem($key,NULL);
     }
 
-    public function getGroup(){
-        //TODO: Finish this function
+    public function getGroup() : UserGroup{
+        if(empty($this->_group)){
+            return NULL;
+        }
+        return UserGroup::fromGroupID($this->_Database,$this->_group);
     }
 
-    public function setGroup(string $groupName){
-        //TODO: Finish this function
+    public function setGroupObj(UserGroup $groupObject){
+        if($groupObject === NULL){
+            $this->_group = NULL;
+        }else{
+            $this->_group = $groupObject->getGroupID();
+        }
     }
-
-    public function setGroupObj($groupObject){
-        //TODO: Finish this function
-    }
-
-
 
     public function readFromDataRow(array $DataRow) : void{
         $this->_username = $DataRow['username'];
@@ -318,6 +347,10 @@ class User{
         }
     }
 
+    public function delete() : void{
+        //TODO: Finish this function
+    }
+
     public static function createUser(
         MysqliDb $Database, 
         string $username, 
@@ -355,14 +388,19 @@ class User{
             throw new PDKException(10006,'Phone number already exist');
         }
         $returnObj = new User();
+        
         $returnObj->_username = $username;
         $returnObj->setPassword($password);
         $returnObj->_display_name = $displayName;
         $returnObj->_email = $email;
         $returnObj->_phone_number = $phone;
         $returnObj->is_admin = $isAdmin;
-        $returnObj->_Database = $Database;
+        $returnObj->regtime = time();
         $returnObj->_createNewUser = true;
+        
+        $returnObj->_Database = $Database;
+        $returnObj->_dataTime = time();
+        $returnObj->_lastDataArray = array();
         return $returnObj;
     }
 
