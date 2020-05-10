@@ -24,6 +24,7 @@ class User{
     private $_permission_override_array = array();
     private $_group = NULL;
     public $regtime = 0;
+    public $reg_client_addr = NULL;
     public $is_admin = false;
     public $avatar_md5 = NULL;
     public $is_frozen = false;
@@ -258,6 +259,7 @@ class User{
         $this->_permission_override_array = empty($DataRow['permission_override']) ? array() : json_decode(gzuncompress($DataRow['permission_override']),true);
         $this->_group = $DataRow['group'];
         $this->regtime = $DataRow['regtime'];
+        $this->reg_client_addr = $DataRow['reg_client_addr'];
         $this->is_admin = $DataRow['is_admin'] == 1;
         $this->avatar_md5 = $DataRow['avatar'];
         $this->is_frozen = $DataRow['is_frozen'] == 1;
@@ -282,6 +284,7 @@ class User{
             'permission_override' => empty($this->_permission_override_array) ? NULL : gzcompress(json_encode($this->_permission_override_array)),
             'group' => $this->_group,
             'regtime' => $this->regtime,
+            'reg_client_addr' => $this->reg_client_addr,
             'is_admin' => $this->is_admin ? 1 : 0,
             'avatar' => $this->avatar_md5,
             'is_frozen' => $this->is_frozen ? 1 : 0
@@ -353,12 +356,13 @@ class User{
 
     public static function createUser(
         MysqliDb $Database, 
+        string $ipAddr,
         string $username, 
         string $password, 
         string $displayName,
         string $email = NULL,
         PhoneNumber $phone = NULL,
-        bool $isAdmin
+        bool $isAdmin = false
     ) : User{
         if(!User_Verification::verifyUsername($username)){
             throw new PDKException(30002,'Username format incorrect',array('credential'=>'username'));
@@ -396,6 +400,7 @@ class User{
         $returnObj->_phone_number = $phone;
         $returnObj->is_admin = $isAdmin;
         $returnObj->regtime = time();
+        $returnObj->reg_client_addr = $ipAddr;
         $returnObj->_createNewUser = true;
         
         $returnObj->_Database = $Database;

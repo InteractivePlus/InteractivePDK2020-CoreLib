@@ -40,3 +40,4 @@ Setting::setPDKSetting(
         'numAppLimit' => 1
     )
 );
+Setting::setPDKSetting('ALLOW_TOKEN_IP_CHANGE',true);
