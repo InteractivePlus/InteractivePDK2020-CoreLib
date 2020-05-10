@@ -50,8 +50,14 @@ class User{
     }
 
     public function setDisplayName(string $displayName) : void{
+        if($this->_display_name == $displayName){
+            return;
+        }
         if(!User_Verification::verifyDisplayName($displayName)){
             throw new PDKException(30002,'Display name format incorrect',array('credential'=>'display_name'));
+        }
+        if(self::checkDisplayNameExist($this->_Database, $displayName)){
+            throw new PDKException(10007,'Display name already exist');
         }
         $this->_display_name = $displayName;
     }
@@ -91,8 +97,14 @@ class User{
     }
 
     public function setEmail(string $email) : void{
+        if($email == $this->_email){
+            return;
+        }
         if(!User_Verification::verifyEmail($email)){
             throw new PDKException(30002,'Email format incorrect',array('credential'=>'email'));
+        }
+        if(!empty($email) && self::checkEmailExist($this->_Database,$email)){
+            throw new PDKException(10005,'Email already exist');
         }
         $this->_email = $email;
     }
@@ -118,6 +130,14 @@ class User{
     public function setPhoneNumberObj(\libphonenumber\PhoneNumber $numberObj, string $country = ''){
         if(!UserPhoneNum::verifyPhoneNumberObj($numberObj,$country)){
             throw new PDKException(30002,'Phone number format incorrect',array('credential'=>'phone_number'));
+        }
+        if($this->_phone_number !== NULL && $numberObj !== NULL){
+            if(UserPhoneNum::outputPhoneNumberE164($this->_phone_number) == UserPhoneNum::outputPhoneNumberE164($numberObj)){
+                return;
+            }
+        }
+        if($numberObj !== NULL && self::checkPhoneNumberExist($this->_Database,$numberObj)){
+            throw new PDKException(10006,'Phone number already exist');
         }
         $this->_phone_number = $numberObj;
     }

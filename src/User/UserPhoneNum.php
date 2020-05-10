@@ -21,7 +21,7 @@ class UserPhoneNum{
         try{
             $parsedNumber = $phoneNumberUtil->parse($Number,$country);
         }catch(\libphonenumber\NumberParseException $e){
-            throw new PDKException(30002,'Phone number format incorrect',null,$e);
+            throw new PDKException(30002,'Phone number format incorrect',array('credential'=>'phone_number'),$e);
         }
         return $parsedNumber;
     }
