@@ -119,12 +119,16 @@ class UserGroup{
 
     public function getPermissionItem(string $Key){
         if($this->_permissions[$Key] !== NULL){
-            return $this->_permissions;
+            return $this->_permissions[$Key];
         }
         if($this->getParentGroup() === NULL){
             return Setting::getPDKSetting('DEFAULT_GROUP_PERMISSION')[$Key];
         }
         return $this->getParentGroup()->getPermissionItem($Key);
+    }
+
+    public function getPermissionOverrideItem(string $Key){
+        return $this->_permissions[$Key];
     }
 
     public function setPermissionItem(string $Key, $value) : void{

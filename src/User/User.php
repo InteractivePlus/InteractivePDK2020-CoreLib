@@ -2,6 +2,7 @@
 namespace InteractivePlus\PDK2020Core\User;
 
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
+use InteractivePlus\PDK2020Core\Settings\Setting;
 use InteractivePlus\PDK2020Core\UserGroup\UserGroup;
 use MysqliDb;
 use InteractivePlus\PDK2020Core\Utils\MultipleQueryResult;
@@ -201,6 +202,18 @@ class User{
 
     public function setPermissionOverrides(array $overrides) : void{
         $this->_permission_override_array = $overrides;
+    }
+
+    public function getPermissionItem(string $key){
+        $overrideVal = $this->getPermissionOverrideItem($key);
+        if($overrideVal !== NULL){
+            return $overrideVal;
+        }
+        if($this->getGroup() !== NULL){
+            return $this->getGroup()->getPermissionItem($key);
+        }else{
+            return Setting::getPDKSetting('DEFAULT_GROUP_PERMISSION')[$key];
+        }
     }
 
     public function getPermissionOverrideItem(string $key){
