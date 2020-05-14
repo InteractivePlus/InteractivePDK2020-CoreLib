@@ -27,6 +27,10 @@ class UserGroup{
 
     }
 
+    public function getLastFetchDataTime() : int{
+        return $this->_dataTime;
+    }
+
     public function getGroupID() : string{
         return $this->_groupID;
     }
