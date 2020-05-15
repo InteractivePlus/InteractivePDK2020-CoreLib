@@ -2,6 +2,7 @@
 namespace InteractivePlus\PDK2020Core\User;
 
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
+use InteractivePlus\PDK2020Core\Utils\IntlUtil;
 use libphonenumber\PhoneNumber;
 use libphonenumber\PhoneNumberFormat;
 
@@ -11,12 +12,7 @@ class UserPhoneNum{
             return false;
         }
         $phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
-        if(empty($country)){
-            $country = \InteractivePlus\PDK2020Core\Settings\Setting::getPDKSetting('DEFAULT_COUNTRY');
-            if(empty($country)){ //if in the configuration the default country is empty, set default country to null.
-                $country = null;
-            }
-        }
+        $country = IntlUtil::fixCountry($country);
         $parsedNumber = null;
         try{
             $parsedNumber = $phoneNumberUtil->parse($Number,$country);

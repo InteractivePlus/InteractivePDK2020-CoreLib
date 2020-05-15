@@ -11,6 +11,35 @@ class Setting{
     }
 }
 
+Setting::setPDKSetting(
+    'USER_SYSTEM_NAME',
+    array(
+        'zh_CN' => '幽径',
+        'en_US' => 'Solitary Trail'
+    )
+);
+Setting::setPDKSetting(
+    'THIRD_PARTY_SYSTEM_NAME',
+    array(
+        'zh_CN' => '幽享',
+        'en_US' => "Solitary Share"
+    )
+);
+Setting::setPDKSetting(
+    'USER_SYSTEM_LINKS',
+    array(
+        'veriLink' => array(
+            'zh_CN' => 'https://user.interactiveplus.org/zh_CN/verifyLink/?',
+            'en_US' => 'https://user.interactiveplus.org/en_US/verifyLink/?'
+        )
+    )
+);
+Setting::setPDKSetting(
+    'THIRD_PARTY_SYSTEM_LINKS',
+    array(
+        
+    )
+);
 Setting::setPDKSetting('USERNAME_MINLEN',1);
 Setting::setPDKSetting('USERNAME_MAXLEN', 20);
 Setting::setPDKSetting('USERNAME_REGEX','');
