@@ -241,12 +241,12 @@ class VeriCode{
             $actualCode = self::generateVerificationCode($user->getUsername());
         }
         
-        //check replication of tokens first
+        //check replication of VeriCodes first
         if(self::checkVeriCodeExist($Database,$actualCode)){
             if(!empty($customVeriCode)){
                 throw new PDKException(80003, 'Verification Code already exist');
             }
-            //regenerate actual token and return the new token.
+            //regenerate actual VeriCode and return the new VeriCode.
             return self::createNewCode($Database,$user,$actionId,$actionParam,$client_ip,$customVeriCode);
         }
 
