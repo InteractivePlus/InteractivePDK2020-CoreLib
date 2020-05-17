@@ -64,7 +64,7 @@ class User{
             if(!$updateRst){
                 throw new PDKException(
                     50007,
-                    'User update error',
+                    __CLASS__ . ' update error',
                     array(
                         'errNo'=>$this->_Database->getLastErrno(),
                         'errMsg'=>$this->_Database->getLastError()
@@ -259,7 +259,7 @@ class User{
         
         $phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
         try{
-            $parsedObject = $phoneNumberUtil->parse($tempPhone,'CN');
+            $parsedObject = $phoneNumberUtil->parse($tempPhone,Setting::getPDKSetting('DEFAULT_COUNTRY'));
             $this->_phone_number = $parsedObject;
         }catch(\libphonenumber\NumberParseException $e){
             $this->_phone_number = NULL;
@@ -307,7 +307,7 @@ class User{
 
     protected function updateToDatabase() : void{
         if($this->_Database === NULL){
-            throw new PDKException(50006,'No database connection stored in User class');
+            throw new PDKException(50006,'No database connection stored in ' . __CLASS__ . 'class');
         }
         
         $newDataArray = $this->saveToDataArray();
@@ -323,7 +323,7 @@ class User{
         if(!$updateRst){
             throw new PDKException(
                 50007,
-                'User update error',
+                __CLASS__ . ' update error',
                 array(
                     'errNo'=>$this->_Database->getLastErrno(),
                     'errMsg'=>$this->_Database->getLastError()
@@ -336,14 +336,14 @@ class User{
 
     protected function insertToDatabase() : void{
         if($this->_Database === NULL){
-            throw new PDKException(50006,'No database connection stored in User class');
+            throw new PDKException(50006,'No database connection stored in ' . __CLASS__ . ' class');
         }
         $dataArray = $this->saveToDataArray();
         $insertedID = $this->_Database->insert('user_infos',$dataArray);
         if(!$insertedID){
             throw new PDKException(
                 50007,
-                'User insert error',
+                __CLASS__ . ' insert error',
                 array(
                     'errNo'=>$this->_Database->getLastErrno(),
                     'errMsg'=>$this->_Database->getLastError()

@@ -55,7 +55,7 @@ class UserGroup{
             if(!$updateRst){
                 throw new PDKException(
                     50007,
-                    'User group update error',
+                    __CLASS__ . ' update error',
                     array(
                         'errNo'=>$this->_Database->getLastErrno(),
                         'errMsg'=>$this->_Database->getLastError()
@@ -158,7 +158,7 @@ class UserGroup{
     }
     protected function updateToDatabase() : void{
         if($this->_Database === NULL){
-            throw new PDKException(50006,'No database connection stored in UserGroup class');
+            throw new PDKException(50006,'No database connection stored in ' . __CLASS__ . ' class');
         }
         
         $newDataArray = $this->saveToDataArray();
@@ -174,7 +174,7 @@ class UserGroup{
         if(!$updateRst){
             throw new PDKException(
                 50007,
-                'User group update error',
+                __CLASS__ . ' update error',
                 array(
                     'errNo'=>$this->_Database->getLastErrno(),
                     'errMsg'=>$this->_Database->getLastError()
@@ -186,14 +186,14 @@ class UserGroup{
     }
     protected function insertToDatabase() : void{
         if($this->_Database === NULL){
-            throw new PDKException(50006,'No database connection stored in UserGroup class');
+            throw new PDKException(50006,'No database connection stored in ' . __CLASS__ . ' class');
         }
         $dataArray = $this->saveToDataArray();
         $insertedID = $this->_Database->insert('usergroup_infos',$dataArray);
         if(!$insertedID){
             throw new PDKException(
                 50007,
-                'User group insert error',
+                __CLASS__ . ' insert error',
                 array(
                     'errNo'=>$this->_Database->getLastErrno(),
                     'errMsg'=>$this->_Database->getLastError()
@@ -226,7 +226,7 @@ class UserGroup{
             if(!$updateRst){
                 throw new PDKException(
                     50007,
-                    'User group update error',
+                    __CLASS__ . ' update error',
                     array(
                         'errNo'=>$this->_Database->getLastErrno(),
                         'errMsg'=>$this->_Database->getLastError()
@@ -241,7 +241,7 @@ class UserGroup{
             if(!$updateRst){
                 throw new PDKException(
                     50007,
-                    'User group update error',
+                    __CLASS__ . ' error',
                     array(
                         'errNo'=>$this->_Database->getLastErrno(),
                         'errMsg'=>$this->_Database->getLastError()
@@ -256,7 +256,7 @@ class UserGroup{
             if(!$updateRst){
                 throw new PDKException(
                     50007,
-                    'User group update error',
+                    __CLASS__ . ' update error',
                     array(
                         'errNo'=>$this->_Database->getLastErrno(),
                         'errMsg'=>$this->_Database->getLastError()

@@ -38,6 +38,12 @@ class Token{
         if(!self::verifyToken($newTokenString)){
             throw new PDKException(30002,'Token format incorrrect',array('credential'=>'token'));
         }
+        if($this->_token == $newTokenString){
+            return;
+        }
+        if(self::checkTokenIDExist($this->_Database, $newTokenString)){
+            throw new PDKException(70003,'Token already exist');
+        }
         if(!$this->_createNewToken){
             $this->_Database->where('token',$this->_token);
             $differenceArray = array(
@@ -47,7 +53,7 @@ class Token{
             if(!$updateRst){
                 throw new PDKException(
                     50007,
-                    'Token update error',
+                    __CLASS__ . ' update error',
                     array(
                         'errNo'=>$this->_Database->getLastErrno(),
                         'errMsg'=>$this->_Database->getLastError()
@@ -105,7 +111,7 @@ class Token{
     }
     protected function updateToDatabase() : void{
         if($this->_Database === NULL){
-            throw new PDKException(50006,'No database connection stored in Token class');
+            throw new PDKException(50006,'No database connection stored in ' . __CLASS__ . ' class');
         }
         
         $newDataArray = $this->saveToDataArray();
@@ -121,7 +127,7 @@ class Token{
         if(!$updateRst){
             throw new PDKException(
                 50007,
-                'Token update error',
+                __CLASS__ . ' update error',
                 array(
                     'errNo'=>$this->_Database->getLastErrno(),
                     'errMsg'=>$this->_Database->getLastError()
@@ -133,14 +139,14 @@ class Token{
     }
     protected function insertToDatabase() : void{
         if($this->_Database === NULL){
-            throw new PDKException(50006,'No database connection stored in Token class');
+            throw new PDKException(50006,'No database connection stored in ' . __CLASS__ . ' class');
         }
         $dataArray = $this->saveToDataArray();
         $insertedID = $this->_Database->insert('logged_infos',$dataArray);
         if(!$insertedID){
             throw new PDKException(
                 50007,
-                'Token insert error',
+                __CLASS__ . ' insert error',
                 array(
                     'errNo'=>$this->_Database->getLastErrno(),
                     'errMsg'=>$this->_Database->getLastError()
@@ -171,7 +177,7 @@ class Token{
             if(!$updateRst){
                 throw new PDKException(
                     50007,
-                    'Token update error',
+                    __CLASS__ . ' update error',
                     array(
                         'errNo'=>$this->_Database->getLastErrno(),
                         'errMsg'=>$this->_Database->getLastError()
@@ -260,7 +266,7 @@ class Token{
         if(!$updateRst){
             throw new PDKException(
                 50007,
-                'Token update error',
+                __CLASS__ . ' update error',
                 array(
                     'errNo'=>$this->_Database->getLastErrno(),
                     'errMsg'=>$this->_Database->getLastError()
