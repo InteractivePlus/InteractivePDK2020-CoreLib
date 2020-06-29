@@ -4,6 +4,7 @@ namespace InteractivePlus\PDK2020Core\User;
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
 use InteractivePlus\PDK2020Core\Settings\Setting;
 use InteractivePlus\PDK2020Core\UserGroup\UserGroup;
+use InteractivePlus\PDK2020Core\Utils\IntlUtil;
 use MysqliDb;
 use InteractivePlus\PDK2020Core\Utils\MultipleQueryResult;
 use libphonenumber\PhoneNumber;
@@ -29,6 +30,8 @@ class User{
     public $is_admin = false;
     public $avatar_md5 = NULL;
     public $is_frozen = false;
+    private $_area = NULL;
+    private $_locale = NULL;
 
     private $_createNewUser = false;
 
@@ -247,6 +250,22 @@ class User{
         }
     }
 
+    public function getArea() : string{
+        return $this->_area;
+    }
+    
+    public function setArea(string $area) : void{
+        $this->_area = IntlUtil::fixArea($area);
+    }
+
+    public function getLocale() : string{
+        return $this->_locale;
+    }
+
+    public function setLocale(string $locale) : void{
+        $this->_locale = $locale;
+    }
+
     public function readFromDataRow(array $DataRow) : void{
         $this->_username = $DataRow['username'];
         $this->_display_name = $DataRow['display_name'];
@@ -276,6 +295,8 @@ class User{
         $this->is_admin = $DataRow['is_admin'] == 1;
         $this->avatar_md5 = $DataRow['avatar'];
         $this->is_frozen = $DataRow['is_frozen'] == 1;
+        $this->_locale = $DataRow['locale'];
+        $this->_area = $DataRow['area'];
         $_dataTime = time();
     }
 
@@ -300,7 +321,9 @@ class User{
             'reg_client_addr' => $this->reg_client_addr,
             'is_admin' => $this->is_admin ? 1 : 0,
             'avatar' => $this->avatar_md5,
-            'is_frozen' => $this->is_frozen ? 1 : 0
+            'is_frozen' => $this->is_frozen ? 1 : 0,
+            'locale' => $this->_locale,
+            'area' => $this->_area
         );
         return $savedArray;
     }
@@ -375,6 +398,8 @@ class User{
         string $displayName,
         string $email = NULL,
         PhoneNumber $phone = NULL,
+        string $locale = Setting::getPDKSetting('DEFAULT_LOCALE'),
+        string $area = Setting::getPDKSetting('DEFAULT_COUNTRY'),
         bool $isAdmin = false
     ) : User{
         if(!User_Verification::verifyUsername($username)){
@@ -409,6 +434,8 @@ class User{
         $returnObj->_username = $username;
         $returnObj->setPassword($password);
         $returnObj->_display_name = $displayName;
+        $returnObj->_locale = IntlUtil::fixLocale($locale);
+        $returnObj->_area = IntlUtil::fixArea($area);
         $returnObj->_email = $email;
         $returnObj->_phone_number = $phone;
         $returnObj->is_admin = $isAdmin;

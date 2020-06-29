@@ -11,6 +11,9 @@ class IntlUtil{
             return Setting::getPDKSetting('DEFAULT_COUNTRY');
         }
     }
+    public static function fixArea(string $area = '') : string{
+        return self::fixCountry($area);
+    }
     public static function fixLocale(string $locale = '') : string{
         if(!empty($locale)){
             return $locale;
