@@ -72,7 +72,7 @@ class TemplateEngine{
     public function quickRender(array $variables) : string{
         $processedTemplate = $this->templateString;
         foreach($variables as $var => $val){
-
+            //TODO: Finish this function
         }
     }
     public static function fixVariableList(array $variableList) : array{
@@ -86,7 +86,8 @@ class TemplateEngine{
         return strtolower(trim($variableName));
     }
     public static function renderPage(string $template, array $variableList) : string{
-        TemplateEngine mEngine = new TemplateEngine($template)
+        $mEngine = new TemplateEngine($template);
+        //TODO: Finish this function
     }
 }
 ?>
