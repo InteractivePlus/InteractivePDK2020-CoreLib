@@ -72,8 +72,12 @@ class TemplateEngine{
     public function quickRender(array $variables) : string{
         $processedTemplate = $this->templateString;
         foreach($variables as $var => $val){
-            //TODO: Finish this function
+            $variableExp1 = '{{' . $var . '}}';
+            $variableExp2 = '{{ ' . $var . ' }}';
+            $processedTemplate = str_replace($variableExp1,$val,$processedTemplate);
+            $processedTemplate = str_replace($variableExp2,$val,$processedTemplate);
         }
+        return $processedTemplate;
     }
     public static function fixVariableList(array $variableList) : array{
         $newVariableList = array();
@@ -87,7 +91,11 @@ class TemplateEngine{
     }
     public static function renderPage(string $template, array $variableList) : string{
         $mEngine = new TemplateEngine($template);
-        //TODO: Finish this function
+        return $mEngine->render($variableList);
+    }
+    public static function quickRenderPage(string $template, array $variableList) : string{
+        $mEngine = new TemplateEngine($template);
+        return $mEngine->quickRender($variableList);
     }
 }
 ?>
