@@ -7,6 +7,8 @@ use libphonenumber\PhoneNumber;
 interface SMSVericodeSender{
     public function sendVerificationCode(
         VeriCode $code, 
-        PhoneNumber $phoneNumber
-    );
+        PhoneNumber $phoneNumber, 
+        string $toName = '', 
+        string $fromName = ''
+    ) : void;
 }

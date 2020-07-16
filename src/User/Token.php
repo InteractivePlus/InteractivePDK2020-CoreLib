@@ -268,8 +268,8 @@ class Token{
                 50007,
                 __CLASS__ . ' update error',
                 array(
-                    'errNo'=>$this->_Database->getLastErrno(),
-                    'errMsg'=>$this->_Database->getLastError()
+                    'errNo'=>$Database->getLastErrno(),
+                    'errMsg'=>$Database->getLastError()
                 )
             );
         }
