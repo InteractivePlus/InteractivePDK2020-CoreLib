@@ -28,4 +28,12 @@ class IntlUtil{
             return $valueArray[$locale];
         }
     }
+    public static function getMultiLangVal(string $language, $multiLangValue){
+        $actualVal = $multiLangValue[$language];
+        if($actualVal === NULL){
+            return $multiLangValue[Setting::getPDKSetting('DEFAULT_LOCALE')];
+        }else{
+            return $actualVal;
+        }
+    }
 }

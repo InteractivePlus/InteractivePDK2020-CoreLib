@@ -2,7 +2,10 @@
 namespace InteractivePlus\PDK2020Core\Implementions;
 
 use Exception;
+use InteractivePlus\PDK2020Core\Settings\Setting;
 use InteractivePlus\PDK2020Core\Utils\IntlUtil;
+use InteractivePlus\PDK2020Core\Utils\PathUtil;
+use InteractivePlus\PDK2020Core\Utils\TemplateEngine;
 
 class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Interfaces\EmailVericodeSender{
     private $_serviceProvider = null;
@@ -34,6 +37,7 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
             throw new \Exception("Non-existant record for user email");
         }
 
+        $relatedUser = $verificationCode->getUser();
         $language = empty($LOCALE_OVERRIDE) ? $verificationCode->getUser()->getLocale() : IntlUtil::fixLocale($LOCALE_OVERRIDE);
 
         //Set up variables for future use
@@ -43,8 +47,27 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
         //check which verification code to send.
         switch($verificationCode->actionID){
             //TODO: fill in title and email content using template engine.
-            
+            case 10001:
+                $variableList = array(
+                    'systemName' => IntlUtil::getMultiLangVal($language,Setting::getPDKSetting('USER_SYSTEM_NAME')),
+                    'username' => $relatedUser->getUsername(),
+                    'userDisplayName' => $relatedUser->getDisplayName(),
+                    'userEmail' => $relatedUser->getEmail(),
+                    'veriLink' => TemplateEngine::quickRenderPage(
+                        IntlUtil::getMultiLangVal($language,Setting::getPDKSetting('USER_SYSTEM_LINKS')),
+                        array('veri_code'=>$verificationCode->getVerificationCode())
+                    )
+                );
+                $generatedTitle = TemplateEngine::quickRenderPage(
+                    file_get_contents(PathUtil::getProjectRootPath() . '/templates/email/' . $language . '/verification_10001.title'),
+                    $variableList
+                );
+                $generatedHTMLContent = TemplateEngine::quickRenderPage(
+                    file_get_contents(PathUtil::getProjectRootPath() . '/templates/email/' . $language . '/verification_10001.html'),
+                    $variableList
+                );
             default:
+            //TODO: Optimize this Exception method
             throw new \Exception("No appropriate template for actionID");
         }
         //Before sending, clear up Serivce Provider
