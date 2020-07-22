@@ -122,7 +122,7 @@ class UserGroup{
             return $this->_permissions[$Key];
         }
         if($this->getParentGroup() === NULL){
-            return Setting::getPDKSetting('DEFAULT_GROUP_PERMISSION')[$Key];
+            return Setting::DEFAULT_GROUP_PERMISSION[$Key];
         }
         return $this->getParentGroup()->getPermissionItem($Key);
     }

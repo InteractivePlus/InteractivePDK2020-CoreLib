@@ -9,7 +9,7 @@ use MysqliDb;
 
 class VeriCode{
     public static function generateVerificationCode(string $username) : string{
-        return md5($username . rand(0,10000) . time() . Setting::getPDKSetting('VERIFICATION_CODE_SALT'));
+        return md5($username . rand(0,10000) . time() . Setting::VERIFICATION_CODE_SALT);
     }
     public static function verifyCode(string $code) : bool{
         return strlen($code) === 32;
@@ -272,7 +272,7 @@ class VeriCode{
         $returnObj->_action_param_array = $actionParam;
         $returnObj->_sentMethod = SentMethod::NOTSENT;
         $returnObj->issueTime = $ctime;
-        $returnObj->expireTime = $ctime + Setting::getPDKSetting('VERIFICATION_CODE_AVAILABLE_DURATION');
+        $returnObj->expireTime = $ctime + Setting::VERIFICATION_CODE_AVAILABLE_DURATION;
         $returnObj->_used_stage = VeriCodeUsedStage::VALID;
         $returnObj->triggerClientAddr = $client_ip;
 

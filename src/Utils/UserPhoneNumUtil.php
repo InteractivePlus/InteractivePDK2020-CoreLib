@@ -1,12 +1,11 @@
 <?php
-namespace InteractivePlus\PDK2020Core\User;
+namespace InteractivePlus\PDK2020Core\Utils;
 
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
-use InteractivePlus\PDK2020Core\Utils\IntlUtil;
 use libphonenumber\PhoneNumber;
 use libphonenumber\PhoneNumberFormat;
 
-class UserPhoneNum{
+class UserPhoneNumUtil{
     public static function parsePhone(string $Number, string $country) : PhoneNumber{
         if(empty($Number) || strlen($Number) < 1 || strlen($Number) > 13 * 2){
             return false;

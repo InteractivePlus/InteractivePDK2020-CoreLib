@@ -8,7 +8,7 @@ use MysqliDb;
 
 class Token{
     public static function generateTokenValue(string $username) : string{
-        return md5($username . rand(0,10000) . time() . Setting::getPDKSetting('TOKEN_SALT'));
+        return md5($username . rand(0,10000) . time() . Setting::TOKEN_SALT);
     }
     public static function verifyToken(string $token) : bool{
         return strlen($token) === 32;
@@ -227,7 +227,7 @@ class Token{
         $returnObj->_client_addr = $client_ip;
         $returnObj->issueTime = $ctime;
         $returnObj->renewTime = $ctime;
-        $returnObj->expireTime = $ctime + Setting::getPDKSetting('TOKEN_AVAILABLE_DURATION');
+        $returnObj->expireTime = $ctime + Setting::TOKEN_AVAILABLE_DURATION;
 
         $returnObj->_createNewToken = true;
         return $returnObj;

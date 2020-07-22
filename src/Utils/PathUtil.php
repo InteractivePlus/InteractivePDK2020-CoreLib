@@ -8,4 +8,8 @@ class PathUtil{
     public static function getProjectRootPath() : string{
         return __DIR__ . '/../..';
     }
+
+    public static function getTemplatePath() : string{
+        return self::getProjectRootPath() . '/templates';
+    }
 }

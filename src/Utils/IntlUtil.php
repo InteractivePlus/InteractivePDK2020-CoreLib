@@ -8,7 +8,7 @@ class IntlUtil{
         if(!empty($country)){
             return $country;
         }else{
-            return Setting::getPDKSetting('DEFAULT_COUNTRY');
+            return Setting::DEFAULT_COUNTRY;
         }
     }
     public static function fixArea(string $area = '') : string{
@@ -18,12 +18,12 @@ class IntlUtil{
         if(!empty($locale)){
             return $locale;
         }else{
-            return Setting::getPDKSetting('DEFAULT_LOCALE');
+            return Setting::DEFAULT_LOCALE;
         }
     }
     public static function getLocaleValue(array $valueArray, string $locale = ''){
         if($valueArray[$locale] === NULL){
-            return $valueArray[Setting::getPDKSetting('DEFAULT_LOCALE')];
+            return $valueArray[Setting::DEFAULT_LOCALE];
         }else{
             return $valueArray[$locale];
         }
@@ -31,7 +31,7 @@ class IntlUtil{
     public static function getMultiLangVal(string $language, $multiLangValue){
         $actualVal = $multiLangValue[$language];
         if($actualVal === NULL){
-            return $multiLangValue[Setting::getPDKSetting('DEFAULT_LOCALE')];
+            return $multiLangValue[Setting::DEFAULT_LOCALE];
         }else{
             return $actualVal;
         }

@@ -2,71 +2,57 @@
 namespace InteractivePlus\PDK2020Core\Settings;
 
 class Setting{
-    public static function getPDKSetting(string $item){
-        return constant(__NAMESPACE__ . '\\' . $item);
-    }
-
-    public static function setPDKSetting(string $item, $value) : void{
-        define(__NAMESPACE__ . '\\' . $item, $value);
-    }
-}
-
-Setting::setPDKSetting(
-    'USER_SYSTEM_NAME',
-    array(
+    const USER_SYSTEM_NAME = array(
         'zh_CN' => '幽径',
         'en_US' => 'Solitary Trail'
-    )
-);
-Setting::setPDKSetting(
-    'THIRD_PARTY_SYSTEM_NAME',
-    array(
+    );
+    const THIRD_PARTY_SYSTEM_NAME = array(
         'zh_CN' => '幽享',
-        'en_US' => "Solitary Share"
-    )
-);
-Setting::setPDKSetting(
-    'USER_SYSTEM_LINKS',
-    array(
-        'veriLink' => array(
-            'zh_CN' => 'https://user.interactiveplus.org/zh_CN/verifyLink/?',
-            'en_US' => 'https://user.interactiveplus.org/en_US/verifyLink/?'
+        'en_US' => 'Solitary Share'
+    );
+    const USER_SYSTEM_LINKS = array(
+        'zh_CN' => array(
+            'confirm_email_url' => 'https://user.interactiveplus.org/zh_CN/veriLinks/verifyEmail/?code={{veri_code}}/',
+            'confirm_phone_url' => 'https://user.interactiveplus.org/zh_CN/veriLinks/verifyPhone/?code={{veri_code}}/',
+            'change_pwd_url' => 'https://user.interactiveplus.org/zh_CN/managements/changePassword/?code={{veri_code}}',
+            'confirm_email_change_url' => 'https://user.interactiveplus.org/zh_CN/veriLinks/confirmEmailChange/?code={{veri_code}}',
+            'confirm_phone_change_url' => 'https://user.interactiveplus.org/zh_CN/veriLinks/confirmPhoneChange/?code={{veri_code}}'
+        ),
+        'en_US' => array(
+            'confirm_email_url' => 'https://user.interactiveplus.org/en_US/veriLinks/verifyEmail/?code={{veri_code}}/',
+            'confirm_phone_url' => 'https://user.interactiveplus.org/en_US/veriLinks/verifyPhone/?code={{veri_code}}/',
+            'change_pwd_url' => 'https://user.interactiveplus.org/en_US/managements/changePassword/?code={{veri_code}}',
+            'confirm_email_change_url' => 'https://user.interactiveplus.org/en_US/veriLinks/confirmEmailChange/?code={{veri_code}}',
+            'confirm_phone_change_url' => 'https://user.interactiveplus.org/en_US/veriLinks/confirmPhoneChange/?code={{veri_code}}'
         )
-    )
-);
-Setting::setPDKSetting(
-    'THIRD_PARTY_SYSTEM_LINKS',
-    array(
-        
-    )
-);
-Setting::setPDKSetting('USERNAME_MINLEN',1);
-Setting::setPDKSetting('USERNAME_MAXLEN', 20);
-Setting::setPDKSetting('USERNAME_REGEX','');
-Setting::setPDKSetting('DISPLAYNAME_MINLEN', 1);
-Setting::setPDKSetting('DISPLAYNAME_MAXLEN', 15);
-Setting::setPDKSetting('DISPLAYNAME_REGEX','');
-Setting::setPDKSetting('SIGNATURE_MAXLEN', 40);
-Setting::setPDKSetting('SIGNATURE_REGEX','');
-Setting::setPDKSetting('EMAIL_MAXLEN',50);
-Setting::setPDKSetting('PASSWORD_MINLEN', 5);
-Setting::setPDKSetting('PASSWORD_MAXLEN', 40);
-Setting::setPDKSetting('PASSWORD_REGEX','');
-Setting::setPDKSetting('LOGIN_SINGLEIPMAXTRIAL_COUNT', 2);
-Setting::setPDKSetting('LOGIN_SINGLEIPMAXTRIAL_DURATION', 120); //2 mins
-Setting::setPDKSetting('AVATOR_MAX_SIZE', 200); //In kB
-Setting::setPDKSetting('PASSWORD_SALT', "");
-Setting::setPDKSetting('TOKEN_SALT', "");
-Setting::setPDKSetting('VERIFICATION_CODE_SALT', "");
-Setting::setPDKSetting('TOKEN_AVAILABLE_DURATION', 3600);
-Setting::setPDKSetting('VERIFICATION_CODE_AVAILABLE_DURATION', 300); //5 mins
-Setting::setPDKSetting('DEFAULT_COUNTRY','CN');
-Setting::setPDKSetting('DEFAULT_LOCALE','zh_CN');
-Setting::setPDKSetting(
-    'DEFAULT_GROUP_PERMISSION',
-    array(
+    );
+    const THIRD_PARTY_SYSTEM_LINKS = array(
+
+    );
+    const USERNAME_MINLEN = 1;
+    const USERNAME_MAXLEN = 20;
+    const USERNAME_REGEX = '';
+    const DISPLAYNAME_MINLEN = 1;
+    const DISPLAYNAME_MAXLEN = 15;
+    const DISPLAYNAME_REGEX = '';
+    const SIGNATURE_MAXLEN = 40;
+    const SIGNATURE_REGEX = '';
+    const EMAIL_MAXLEN = 50;
+    const PASSWORD_MINLEN = 5;
+    const PASSWORD_MAXLEN = 40;
+    const PASSWORD_REGEX = '';
+    const AVATOR_MAX_SIZE = 200;//In kB
+    const PASSWORD_SALT = '';
+    const TOKEN_SALT = '';
+    const VERIFICATION_CODE_SALT = '';
+    const TOKEN_AVAILABLE_DURATION = 3600;
+    const VERIFICATION_CODE_AVAILABLE_DURATION = 300;
+    const DEFAULT_COUNTRY = 'CN';
+    const DEFAULT_LOCALE = 'zh_CN';
+    const DEFAULT_GROUP_PERMISSION = array(
         'createApp' => false,
         'numAppLimit' => 1
-    )
-);
-Setting::setPDKSetting('ALLOW_TOKEN_IP_CHANGE',true);
+    );
+    const ALLOW_TOKEN_IP_CHANGE = true;
+    const DEBUG_MODE = true;
+}

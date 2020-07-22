@@ -5,6 +5,7 @@ use InteractivePlus\PDK2020Core\Exceptions\PDKException;
 use InteractivePlus\PDK2020Core\Settings\Setting;
 use InteractivePlus\PDK2020Core\UserGroup\UserGroup;
 use InteractivePlus\PDK2020Core\Utils\IntlUtil;
+use InteractivePlus\PDK2020Core\Utils\UserPhoneNumUtil;
 use MysqliDb;
 use InteractivePlus\PDK2020Core\Utils\MultipleQueryResult;
 use libphonenumber\PhoneNumber;
@@ -111,14 +112,14 @@ class User{
     }
 
     public function checkPassword(string $password) : bool{
-        return Password::checkPassword($password,$this->_password_hash);
+        return PasswordAlg::checkPassword($password,$this->_password_hash);
     }
 
     public function setPassword(string $password) : void{
-        if(!Password::verifyPassword($password)){
+        if(!PasswordAlg::verifyPassword($password)){
             throw new PDKException(30002,'Password format incorrect',array('credential'=>'password'));
         }
-        $this->_password_hash = Password::encryptPassword($password);
+        $this->_password_hash = PasswordAlg::encryptPassword($password);
     }
 
     public function setPasswordHash(string $passwordHash) : void{
@@ -150,22 +151,22 @@ class User{
         if($this->_phone_number === NULL){
             return NULL;
         }
-        return UserPhoneNum::outputPhoneNumberE164($this->_phone_number);
+        return UserPhoneNumUtil::outputPhoneNumberE164($this->_phone_number);
     }
     
     public function getPhoneNumberStrFormatted() : string{
         if($this->_phone_number === NULL){
             return NULL;
         }
-        return UserPhoneNum::outputPhoneNumberIntl($this->_phone_number);
+        return UserPhoneNumUtil::outputPhoneNumberIntl($this->_phone_number);
     }
 
     public function setPhoneNumberObj(\libphonenumber\PhoneNumber $numberObj, string $country = ''){
-        if(!UserPhoneNum::verifyPhoneNumberObj($numberObj,$country)){
+        if(!UserPhoneNumUtil::verifyPhoneNumberObj($numberObj,$country)){
             throw new PDKException(30002,'Phone number format incorrect',array('credential'=>'phone_number'));
         }
         if($this->_phone_number !== NULL && $numberObj !== NULL){
-            if(UserPhoneNum::outputPhoneNumberE164($this->_phone_number) == UserPhoneNum::outputPhoneNumberE164($numberObj)){
+            if(UserPhoneNumUtil::outputPhoneNumberE164($this->_phone_number) == UserPhoneNumUtil::outputPhoneNumberE164($numberObj)){
                 return;
             }
         }
@@ -215,7 +216,7 @@ class User{
         if($this->getGroup() !== NULL){
             return $this->getGroup()->getPermissionItem($key);
         }else{
-            return Setting::getPDKSetting('DEFAULT_GROUP_PERMISSION')[$key];
+            return Setting::DEFAULT_GROUP_PERMISSION[$key];
         }
     }
 
@@ -278,7 +279,7 @@ class User{
         
         $phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
         try{
-            $parsedObject = $phoneNumberUtil->parse($tempPhone,Setting::getPDKSetting('DEFAULT_COUNTRY'));
+            $parsedObject = $phoneNumberUtil->parse($tempPhone,Setting::DEFAULT_COUNTRY);
             $this->_phone_number = $parsedObject;
         }catch(\libphonenumber\NumberParseException $e){
             $this->_phone_number = NULL;
@@ -303,7 +304,7 @@ class User{
     public function saveToDataArray() : array{
         $savedPhoneNumber = NULL;
         if($this->_phone_number !== NULL){
-            $savedPhoneNumber = UserPhoneNum::outputPhoneNumberE164($this->_phone_number);
+            $savedPhoneNumber = UserPhoneNumUtil::outputPhoneNumberE164($this->_phone_number);
         }
         $savedArray = array(
             'username' => $this->_username,
@@ -398,14 +399,14 @@ class User{
         string $displayName,
         string $email = NULL,
         PhoneNumber $phone = NULL,
-        string $locale = Setting::getPDKSetting('DEFAULT_LOCALE'),
-        string $area = Setting::getPDKSetting('DEFAULT_COUNTRY'),
+        string $locale = Setting::DEFAULT_LOCALE,
+        string $area = Setting::DEFAULT_COUNTRY,
         bool $isAdmin = false
     ) : User{
         if(!User_Verification::verifyUsername($username)){
             throw new PDKException(30002,'Username format incorrect',array('credential'=>'username'));
         }
-        if(!Password::verifyPassword($password)){
+        if(!PasswordAlg::verifyPassword($password)){
             throw new PDKException(30002,'Password format incorrect',array('credential'=>'password'));
         }
         if(!User_Verification::verifyDisplayName($displayName)){
@@ -414,7 +415,7 @@ class User{
         if(!empty($email) && !User_Verification::verifyEmail($email)){
             throw new PDKException(30002,'Email format incorrect',array('credential'=>'email'));
         }
-        if($phone !== NULL && !UserPhoneNum::verifyPhoneNumberObj($phone)){
+        if($phone !== NULL && !UserPhoneNumUtil::verifyPhoneNumberObj($phone)){
             throw new PDKException(30002,'Phone number format incorrect',array('credential'=>'phone_number'));
         }
         if(self::checkUsernameExist($Database,$username)){
@@ -486,7 +487,7 @@ class User{
     }
 
     public static function fromPhoneObj(MysqliDb $Database, \libphonenumber\PhoneNumber $PhoneObj) : User{
-        if(!UserPhoneNum::verifyPhoneNumberObj($PhoneObj)){
+        if(!UserPhoneNumUtil::verifyPhoneNumberObj($PhoneObj)){
             throw new PDKException(30002,'Phone number format incorrect',array('credential'=>'phone_number'));
         }
         $phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
@@ -564,7 +565,7 @@ class User{
     }
 
     public static function checkPhoneNumberExist(MysqliDb $Database, \libphonenumber\PhoneNumber $phoneNumber) : bool{
-        $phoneNumberFormatted = UserPhoneNum::outputPhoneNumberE164($phoneNumber);
+        $phoneNumberFormatted = UserPhoneNumUtil::outputPhoneNumberE164($phoneNumber);
         $Database->where('phone_number',$phoneNumberFormatted);
         $count = $Database->getValue('user_infos','count(*)');
         if($count >= 1){

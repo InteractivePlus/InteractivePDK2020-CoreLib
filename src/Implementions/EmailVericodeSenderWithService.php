@@ -6,6 +6,7 @@ use InteractivePlus\PDK2020Core\Settings\Setting;
 use InteractivePlus\PDK2020Core\Utils\IntlUtil;
 use InteractivePlus\PDK2020Core\Utils\PathUtil;
 use InteractivePlus\PDK2020Core\Utils\TemplateEngine;
+use InteractivePlus\PDK2020Core\Utils\TemplateFileUtil;
 
 class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Interfaces\EmailVericodeSender{
     private $_serviceProvider = null;
@@ -49,23 +50,88 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
             //TODO: fill in title and email content using template engine.
             case 10001:
                 $variableList = array(
-                    'systemName' => IntlUtil::getMultiLangVal($language,Setting::getPDKSetting('USER_SYSTEM_NAME')),
+                    'systemName' => IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_NAME),
                     'username' => $relatedUser->getUsername(),
                     'userDisplayName' => $relatedUser->getDisplayName(),
                     'userEmail' => $relatedUser->getEmail(),
                     'veriLink' => TemplateEngine::quickRenderPage(
-                        IntlUtil::getMultiLangVal($language,Setting::getPDKSetting('USER_SYSTEM_LINKS')),
+                        IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_LINKS)['confirm_email_url'],
                         array('veri_code'=>$verificationCode->getVerificationCode())
                     )
                 );
                 $generatedTitle = TemplateEngine::quickRenderPage(
-                    file_get_contents(PathUtil::getProjectRootPath() . '/templates/email/' . $language . '/verification_10001.title'),
+                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
                     $variableList
                 );
                 $generatedHTMLContent = TemplateEngine::quickRenderPage(
-                    file_get_contents(PathUtil::getProjectRootPath() . '/templates/email/' . $language . '/verification_10001.html'),
+                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
                     $variableList
                 );
+                break;
+            case 20001:
+                $variableList = array(
+                    'systemName' => IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_NAME),
+                    'username' => $relatedUser->getUsername(),
+                    'userDisplayName' => $relatedUser->getDisplayName(),
+                    'veriCode' => $verificationCode->getVerificationCode(),
+                    'veriLink' => TemplateEngine::quickRenderPage(
+                        IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_LINKS)['change_pwd_url'],
+                        array('veri_code'=>$verificationCode->getVerificationCode())
+                    )
+                );
+                $generatedTitle = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
+                    $variableList
+                );
+                $generatedHTMLContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                    $variableList
+                );
+                break;
+            case 20002:
+                $variableList = array(
+                    'systemName' => IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_NAME),
+                    'username' => $relatedUser->getUsername(),
+                    'userDisplayName' => $relatedUser->getDisplayName(),
+                    'userEmail' => $relatedUser->getEmail(),
+                    'veriCode' => $verificationCode->getVerificationCode(),
+                    'veriLink' => TemplateEngine::quickRenderPage(
+                        IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_LINKS)['confirm_email_change_url'],
+                        array('veri_code'=>$verificationCode->getVerificationCode())
+                    ),
+                    'newEmail' => $verificationCode->getActionParam('new_email')
+                );
+                $generatedTitle = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
+                    $variableList
+                );
+                $generatedHTMLContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                    $variableList
+                );
+                break;
+            case 20003:
+                $variableList = array(
+                    'systemName' => IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_NAME),
+                    'username' => $relatedUser->getUsername(),
+                    'userDisplayName' => $relatedUser->getDisplayName(),
+                    'userPhone' => $relatedUser->getPhoneNumberStr(),
+                    'veriCode' => $verificationCode->getVerificationCode(),
+                    'veriLink' => TemplateEngine::quickRenderPage(
+                        IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_LINKS)['confirm_phone_change_url'],
+                        array('veri_code'=>$verificationCode->getVerificationCode())
+                    ),
+                    'newPhone' => $verificationCode->getActionParam('new_phone')
+                );
+                $generatedTitle = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
+                    $variableList
+                );
+                $generatedHTMLContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                    $variableList
+                );
+                break;
             default:
             //TODO: Optimize this Exception method
             throw new \Exception("No appropriate template for actionID");

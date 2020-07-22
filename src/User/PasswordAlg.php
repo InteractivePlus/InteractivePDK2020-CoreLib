@@ -1,6 +1,6 @@
 <?php
 namespace InteractivePlus\PDK2020Core\User;
-class Password{
+class PasswordAlg{
     public static function verifyPassword(string $password) : bool{
         return User_Verification::verifyPassword($password);
     }
