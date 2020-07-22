@@ -1,5 +1,8 @@
 <?php
 namespace InteractivePlus\PDK2020Core\User;
+
+use InteractivePlus\PDK2020Core\Settings\Setting;
+
 class PasswordAlg{
     public static function verifyPassword(string $password) : bool{
         return User_Verification::verifyPassword($password);
@@ -12,6 +15,6 @@ class PasswordAlg{
         }
     }
     public static function encryptPassword(string $password) : string{
-        return hash('sha256',$password . \InteractivePlus\PDK2020Core\Settings\Setting::getPDKSetting('PASSWORD_SALT'));
+        return hash('sha256',$password . Setting::PASSWORD_SALT);
     }
 }
