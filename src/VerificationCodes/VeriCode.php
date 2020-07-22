@@ -26,7 +26,7 @@ class VeriCode{
     private $_sentMethod = SentMethod::NOTSENT;
     public $issueTime = 0;
     public $expireTime = 0;
-    public $used = false;
+    private $_used_stage = VeriCodeUsedStage::INVALID;
     public $triggerClientAddr = NULL;
 
     private $_createNewCode = false;
@@ -114,6 +114,14 @@ class VeriCode{
         $this->_sentMethod = SentMethod::fixMethod($method);
     }
 
+    public function getUsedStage() : int{
+        return $this->_used_stage;
+    }
+
+    public function setUsedStage(int $stage) : void{
+        $this->_used_stage = VeriCodeUsedStage::fixStage($stage);
+    }
+
     public function readFromDataRow(array $DataRow) : void{
         $this->_veriCode = $DataRow['veri_code'];
         $this->_username = $DataRow['username'];
@@ -122,7 +130,7 @@ class VeriCode{
         $this->_sentMethod = $DataRow['sent_method'];
         $this->issueTime = $DataRow['issue_time'];
         $this->expireTime = $DataRow['expire_time'];
-        $this->used = $DataRow['used'] == 1;
+        $this->_used_stage = $DataRow['used_stage'];
         $this->triggerClientAddr = $DataRow['trigger_client_ip'];
     }
 
@@ -135,7 +143,7 @@ class VeriCode{
             'sent_method' => $this->_sentMethod,
             'issue_time' => $this->issueTime,
             'expire_time' => $this->expireTime,
-            'used' => $this->used ? 1 : 0,
+            'used_stage' => $this->_used_stage,
             'trigger_client_ip' => $this->triggerClientAddr
         );
         return $savedArray;
@@ -265,7 +273,7 @@ class VeriCode{
         $returnObj->_sentMethod = SentMethod::NOTSENT;
         $returnObj->issueTime = $ctime;
         $returnObj->expireTime = $ctime + Setting::getPDKSetting('VERIFICATION_CODE_AVAILABLE_DURATION');
-        $returnObj->used = false;
+        $returnObj->_used_stage = VeriCodeUsedStage::VALID;
         $returnObj->triggerClientAddr = $client_ip;
 
         $returnObj->_createNewCode = true;

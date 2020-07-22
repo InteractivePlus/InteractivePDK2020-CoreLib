@@ -4,9 +4,11 @@ class SentMethod{
     const NOTSENT = 0;
     const EMAIL = 1;
     const MOBILETEXT = 2;
+    const PHONECALL = 3;
     public static function isSentMethod(int $method) : bool{
         switch($method){
             case self::MOBILETEXT:
+            case self::PHONECALL:
             case self::EMAIL:
             case self::NOTSENT:
                 return true;
