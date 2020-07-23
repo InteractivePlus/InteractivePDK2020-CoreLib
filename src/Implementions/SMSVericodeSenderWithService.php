@@ -9,19 +9,20 @@ use InteractivePlus\PDK2020Core\Utils\TemplateEngine;
 use InteractivePlus\PDK2020Core\Utils\TemplateFileUtil;
 use InteractivePlus\PDK2020Core\VerificationCodes\SentMethod;
 use InteractivePlus\PDK2020Core\VerificationCodes\VeriCode;
+use libphonenumber\PhoneNumber;
 
-class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Interfaces\EmailVericodeSender{
+class SMSVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Interfaces\SMSVericodeSender{
     private $_serviceProvider = null;
-    public function __construct(\InteractivePlus\PDK2020Core\Interfaces\EmailServiceProvider $serviceProvider){
+    public function __construct(\InteractivePlus\PDK2020Core\Interfaces\SMSServiceProvider $serviceProvider){
         if($serviceProvider === NULL){
             throw new Exception("Service Provider cannot be NULL");
         }
         $this->_serviceProvider = $serviceProvider;
     }
-    public function getServiceProvider() : \InteractivePlus\PDK2020Core\Interfaces\EmailServiceProvider{
+    public function getServiceProvider() : \InteractivePlus\PDK2020Core\Interfaces\SMSServiceProvider{
         return $this->_serviceProvider;
     }
-    public function setServiceProvider(\InteractivePlus\PDK2020Core\Interfaces\EmailServiceProvider $provider) : void{
+    public function setServiceProvider(\InteractivePlus\PDK2020Core\Interfaces\SMSServiceProvider $provider) : void{
         if($provider === null){
             return;
         }
@@ -30,6 +31,9 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
 
     public function sendVerificationCode(
         VeriCode $verificationCode, 
+        PhoneNumber $phoneNumber, 
+        string $toName = '', 
+        string $fromName = '',
         string $LOCALE_OVERRIDE = NULL
     ) : void{
         //First verify whether we can actually send out that email
@@ -38,35 +42,31 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
         }
         $toEmail = $verificationCode->getUser()->getEmail();
         if(empty($toEmail)){
-            throw new \Exception("Non-existant record for user email");
+            throw new Exception("Non-existant record for user email");
         }
 
         $relatedUser = $verificationCode->getUser();
         $language = empty($LOCALE_OVERRIDE) ? $verificationCode->getUser()->getLocale() : IntlUtil::fixLocale($LOCALE_OVERRIDE);
 
         //Set up variables for future use
-        $generatedTitle = '';
-        $generatedHTMLContent = '';
+        $generatedSMSContent = '';
         
         //check which verification code to send.
         switch($verificationCode->actionID){
-            case 10001:
+            case 10002:
                 $variableList = array(
                     'systemName' => IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_NAME),
                     'username' => $relatedUser->getUsername(),
                     'userDisplayName' => $relatedUser->getDisplayName(),
-                    'userEmail' => $relatedUser->getEmail(),
+                    'userPhone' => $relatedUser->getPhoneNumberStr(),
+                    'veriCode' => $verificationCode->getVerificationCode(),
                     'veriLink' => TemplateEngine::quickRenderPage(
-                        IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_LINKS)['confirm_email_url'],
+                        IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_LINKS)['confirm_phone_url'],
                         array('veri_code'=>$verificationCode->getVerificationCode())
                     )
                 );
-                $generatedTitle = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
-                    $variableList
-                );
-                $generatedHTMLContent = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                $generatedSMSContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getSMSTemplateContent($verificationCode->actionID,$language),
                     $variableList
                 );
                 break;
@@ -81,12 +81,8 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
                         array('veri_code'=>$verificationCode->getVerificationCode())
                     )
                 );
-                $generatedTitle = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
-                    $variableList
-                );
-                $generatedHTMLContent = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                $generatedSMSContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getSMSTemplateContent($verificationCode->actionID,$language),
                     $variableList
                 );
                 break;
@@ -103,12 +99,8 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
                     ),
                     'newEmail' => $verificationCode->getActionParam('new_email')
                 );
-                $generatedTitle = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
-                    $variableList
-                );
-                $generatedHTMLContent = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                $generatedSMSContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getSMSTemplateContent($verificationCode->actionID,$language),
                     $variableList
                 );
                 break;
@@ -125,12 +117,8 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
                     ),
                     'newPhone' => $verificationCode->getActionParam('new_phone')
                 );
-                $generatedTitle = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
-                    $variableList
-                );
-                $generatedHTMLContent = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                $generatedSMSContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getSMSTemplateContent($verificationCode->actionID,$language),
                     $variableList
                 );
                 break;
@@ -141,12 +129,8 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
                     'userDisplayName' => $relatedUser->getDisplayName(),
                     'veriCode' => $verificationCode->getVerificationCode()
                 );
-                $generatedTitle = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
-                    $variableList
-                );
-                $generatedHTMLContent = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                $generatedSMSContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getSMSTemplateContent($verificationCode->actionID,$language),
                     $variableList
                 );
                 break;
@@ -157,12 +141,8 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
                     'userDisplayName' => $relatedUser->getDisplayName(),
                     'veriCode' => $verificationCode->getVerificationCode()
                 );
-                $generatedTitle = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
-                    $variableList
-                );
-                $generatedHTMLContent = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                $generatedSMSContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getSMSTemplateContent($verificationCode->actionID,$language),
                     $variableList
                 );
                 break;
@@ -173,12 +153,8 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
                     'userDisplayName' => $relatedUser->getDisplayName(),
                     'veriCode' => $verificationCode->getVerificationCode()
                 );
-                $generatedTitle = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateTitle($verificationCode->actionID,$language),
-                    $variableList
-                );
-                $generatedHTMLContent = TemplateEngine::quickRenderPage(
-                    TemplateFileUtil::getEmailTemplateContent($verificationCode->actionID,$language),
+                $generatedSMSContent = TemplateEngine::quickRenderPage(
+                    TemplateFileUtil::getSMSTemplateContent($verificationCode->actionID,$language),
                     $variableList
                 );
                 break;
@@ -196,9 +172,9 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
         $this->getServiceProvider()->clear();
 
         //Let's send!
-        $this->getServiceProvider()->setSubject($generatedTitle);
-        $this->getServiceProvider()->setBody($generatedHTMLContent);
-        $this->getServiceProvider()->addToAccount($toEmail,$verificationCode->getUser()->getDisplayName());
+        $this->getServiceProvider()->setBody($generatedSMSContent);
+        $this->getServiceProvider()->addToAccount($phoneNumber,$toName);
+        $this->getServiceProvider()->setFromName($fromName);
         $sendResult = $this->getServiceProvider()->send();
         if(!$sendResult){
             throw new PDKException(50003,'Failed to send email');
