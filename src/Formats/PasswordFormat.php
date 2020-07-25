@@ -1,11 +1,11 @@
 <?php
-namespace InteractivePlus\PDK2020Core\User;
+namespace InteractivePlus\PDK2020Core\Formats;
 
 use InteractivePlus\PDK2020Core\Settings\Setting;
 
-class PasswordAlg{
+class PasswordFormat{
     public static function verifyPassword(string $password) : bool{
-        return User_Verification::verifyPassword($password);
+        return UserFormat::verifyPassword($password);
     }
     public static function checkPassword(string $password, string $password_hash) : bool{
         if(self::encryptPassword($password) == $password_hash){

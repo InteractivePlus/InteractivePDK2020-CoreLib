@@ -8,6 +8,8 @@ use InteractivePlus\PDK2020Core\Utils\IntlUtil;
 use InteractivePlus\PDK2020Core\Utils\UserPhoneNumUtil;
 use MysqliDb;
 use InteractivePlus\PDK2020Core\Utils\MultipleQueryResult;
+use InteractivePlus\PDK2020Core\Formats\PasswordFormat;
+use InteractivePlus\PDK2020Core\Formats\UserFormat;
 use libphonenumber\PhoneNumber;
 
 class User{
@@ -49,7 +51,7 @@ class User{
     }
 
     public function changeUserName(string $newUserName) : void{
-        if(!User_Verification::verifyUsername($newUserName)){
+        if(!UserFormat::verifyUsername($newUserName)){
             throw new PDKException(30002,'Username format incorrect',array('credential'=>'username'));
         }
         if($newUserName == $this->_username){
@@ -87,7 +89,7 @@ class User{
         if($this->_display_name == $displayName){
             return;
         }
-        if(!User_Verification::verifyDisplayName($displayName)){
+        if(!UserFormat::verifyDisplayName($displayName)){
             throw new PDKException(30002,'Display name format incorrect',array('credential'=>'display_name'));
         }
         if(self::checkDisplayNameExist($this->_Database, $displayName)){
@@ -101,7 +103,7 @@ class User{
     }
 
     public function setSignature(string $signature) : void{
-        if(!User_Verification::verifySignature($signature)){
+        if(!UserFormat::verifySignature($signature)){
             throw new PDKException(30002,'Signature format incorrect',array('credential'=>'signature'));
         }
         $this->_signature = $signature;
@@ -112,14 +114,14 @@ class User{
     }
 
     public function checkPassword(string $password) : bool{
-        return PasswordAlg::checkPassword($password,$this->_password_hash);
+        return PasswordFormat::checkPassword($password,$this->_password_hash);
     }
 
     public function setPassword(string $password) : void{
-        if(!PasswordAlg::verifyPassword($password)){
+        if(!PasswordFormat::verifyPassword($password)){
             throw new PDKException(30002,'Password format incorrect',array('credential'=>'password'));
         }
-        $this->_password_hash = PasswordAlg::encryptPassword($password);
+        $this->_password_hash = PasswordFormat::encryptPassword($password);
     }
 
     public function setPasswordHash(string $passwordHash) : void{
@@ -134,7 +136,7 @@ class User{
         if($email == $this->_email){
             return;
         }
-        if(!User_Verification::verifyEmail($email)){
+        if(!UserFormat::verifyEmail($email)){
             throw new PDKException(30002,'Email format incorrect',array('credential'=>'email'));
         }
         if(!empty($email) && self::checkEmailExist($this->_Database,$email)){
@@ -403,16 +405,16 @@ class User{
         string $area = Setting::DEFAULT_COUNTRY,
         bool $isAdmin = false
     ) : User{
-        if(!User_Verification::verifyUsername($username)){
+        if(!UserFormat::verifyUsername($username)){
             throw new PDKException(30002,'Username format incorrect',array('credential'=>'username'));
         }
-        if(!PasswordAlg::verifyPassword($password)){
+        if(!PasswordFormat::verifyPassword($password)){
             throw new PDKException(30002,'Password format incorrect',array('credential'=>'password'));
         }
-        if(!User_Verification::verifyDisplayName($displayName)){
+        if(!UserFormat::verifyDisplayName($displayName)){
             throw new PDKException(30002,'Display name format incorrect',array('credential'=>'display_name'));
         }
-        if(!empty($email) && !User_Verification::verifyEmail($email)){
+        if(!empty($email) && !UserFormat::verifyEmail($email)){
             throw new PDKException(30002,'Email format incorrect',array('credential'=>'email'));
         }
         if($phone !== NULL && !UserPhoneNumUtil::verifyPhoneNumberObj($phone)){
@@ -451,7 +453,7 @@ class User{
     }
 
     public static function fromUsername(MysqliDb $Database, string $username) : User{
-        if(!User_Verification::verifyUsername($username)){
+        if(!UserFormat::verifyUsername($username)){
             throw new PDKException(30002,'Username format incorrect',array('credential'=>'username'));
         }
         $Database->where('username',$username);
@@ -469,7 +471,7 @@ class User{
     }
 
     public static function fromEmail(MysqliDb $Database, string $email) : User{
-        if(!User_Verification::verifyEmail($email)){
+        if(!UserFormat::verifyEmail($email)){
             throw new PDKException(30002,'Email format incorrect',array('credential'=>'email'));
         }
         $Database->where('email',$email);

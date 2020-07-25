@@ -1,6 +1,6 @@
 <?php
-namespace InteractivePlus\PDK2020Core\User;
-class User_Verification{
+namespace InteractivePlus\PDK2020Core\Formats;
+class UserFormat{
     protected static function verifyString(string $str, int $minLength, int $maxLength, string $regex = null) : bool{
         $strLength = strlen($str);
         //Check length first
