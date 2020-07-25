@@ -54,5 +54,6 @@ class Setting{
         'numAppLimit' => 1
     );
     const ALLOW_TOKEN_IP_CHANGE = true;
+    const ALLOW_VERICODE_IP_CHANGE = false;
     const DEBUG_MODE = true;
 }
