@@ -35,6 +35,10 @@ class VeriCode{
 
     }
 
+    public function getDatabase() : MysqliDb{
+        return $this->_Database;
+    }
+
     public function getLastFetchDataTime() : int{
         return $this->_dataTime;
     }

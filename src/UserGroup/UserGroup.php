@@ -3,7 +3,7 @@ namespace InteractivePlus\PDK2020Core\UserGroup;
 
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
 use InteractivePlus\PDK2020Core\Settings\Setting;
-use InteractivePlus\PDK2020Core\User\User_Verification;
+use InteractivePlus\PDK2020Core\Formats\UserFormat;
 use InteractivePlus\PDK2020Core\Utils\DataUtil;
 use InteractivePlus\PDK2020Core\Utils\MultipleQueryResult;
 use MysqliDb;
@@ -27,6 +27,10 @@ class UserGroup{
 
     }
 
+    public function getDatabase() : MysqliDb{
+        return $this->_Database;
+    }
+
     public function getLastFetchDataTime() : int{
         return $this->_dataTime;
     }
@@ -36,7 +40,7 @@ class UserGroup{
     }
 
     public function changeGroupID(string $newGroupID) : void{
-        if(!User_Verification::verifyUsername($newGroupID)){
+        if(!UserFormat::verifyUsername($newGroupID)){
             throw new PDKException(30002,'GroupID format incorrect',array('credential'=>'groupid'));
         }
         if($newGroupID == $this->_groupID){
@@ -86,7 +90,7 @@ class UserGroup{
     }
 
     public function setDisplayName(string $displayName) : void{
-        if(User_Verification::verifyDisplayName($displayName)){
+        if(UserFormat::verifyDisplayName($displayName)){
             throw new PDKException(30002,'Display name format incorrect',array('credential'=>'display_name'));
         }
         if($this->_displayName == $displayName){
@@ -100,7 +104,7 @@ class UserGroup{
     }
 
     public function setDescription(string $description) : void{
-        if(User_Verification::verifySignature($description)){
+        if(UserFormat::verifySignature($description)){
             throw new PDKException(30002,'Description format incorrrect', array('credential'=>'description'));
         }
         if($this->_description == $description){
@@ -275,13 +279,13 @@ class UserGroup{
         array $permissions,
         UserGroup $parent = NULL
     ) : UserGroup{
-        if(!User_Verification::verifyUsername($groupID)){
+        if(!UserFormat::verifyUsername($groupID)){
             throw new PDKException(30002,'GroupID format incorrect',array('credential'=>'groupid'));
         }
-        if(!User_Verification::verifyDisplayName($displayName)){
+        if(!UserFormat::verifyDisplayName($displayName)){
             throw new PDKException(30002,'Display name format incorrect',array('credential'=>'display_name'));
         }
-        if(!User_Verification::verifySignature($description)){
+        if(!UserFormat::verifySignature($description)){
             throw new PDKException(30002,'Description format incorrect',array('credential'=>'description'));
         }
         if(self::checkGroupIDExist($Database, $groupID)){
@@ -309,7 +313,7 @@ class UserGroup{
     }
 
     public static function fromGroupID(MysqliDb $Database, string $groupID) : UserGroup{
-        if(!User_Verification::verifyUsername($groupID)){
+        if(!UserFormat::verifyUsername($groupID)){
             throw new PDKException(30002,'GroupID format incorrect',array('credential'=>'groupid'));
         }
         $Database->where('groupid',$groupID);

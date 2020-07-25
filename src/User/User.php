@@ -17,6 +17,7 @@ class User{
     private $_dataTime = 0;
     private $_lastDataArray = NULL;
 
+    private $_uid = -1;
     private $_username = NULL;
     private $_display_name = NULL;
     private $_signature = NULL;
@@ -42,8 +43,16 @@ class User{
 
     }
 
+    public function getDatabase() : MysqliDb{
+        return $this->_Database;
+    }
+
     public function getLastFetchDataTime() : int{
         return $this->_dataTime;
+    }
+
+    public function getUID() : int{
+        return $this->_uid;
     }
 
     public function getUsername() : string{
@@ -288,6 +297,7 @@ class User{
         }
         //Phone End
 
+        $this->_uid = $DataRow['uid'];
         $this->_settings_array = empty($DataRow['settings']) ? array() : json_decode(gzuncompress($DataRow['settings']),true);
         $this->email_verified = $DataRow['email_verified'] == 1;
         $this->phone_verified = $DataRow['phone_verified'] == 1;
@@ -470,6 +480,24 @@ class User{
         return $returnObj;
     }
 
+    public static function fromUID(MysqliDb $Database, int $uid) : User{
+        if($uid <= 0){
+            throw new PDKException(30002,'Username format incorrect',array('credential'=>'username'));
+        }
+        $Database->where('uid',$uid);
+        $dataRow = $Database->getOne('user_infos');
+        if(!$dataRow){
+            throw new PDKException(10001,'User non-existant');
+        }
+        $returnObj = new User();
+        $returnObj->_Database = $Database;
+        $returnObj->_dataTime = time();
+        $returnObj->_lastDataArray = $dataRow;
+        $returnObj->_createNewUser = false;
+        $returnObj->readFromDataRow($dataRow);
+        return $returnObj;
+    }
+
     public static function fromEmail(MysqliDb $Database, string $email) : User{
         if(!UserFormat::verifyEmail($email)){
             throw new PDKException(30002,'Email format incorrect',array('credential'=>'email'));
@@ -550,6 +578,15 @@ class User{
 
     public static function checkUsernameExist(MysqliDb $Database, string $Username) : bool{
         $Database->where('username',$Username);
+        $count = $Database->getValue('user_infos','count(*)');
+        if($count >= 1){
+            return true;
+        }
+        return false;
+    }
+
+    public static function checkUIDExist(MysqliDb $Database, int $uid) : bool{
+        $Database->where('uid',$uid);
         $count = $Database->getValue('user_infos','count(*)');
         if($count >= 1){
             return true;

@@ -26,6 +26,14 @@ class Token{
 
     private $_createNewToken = false;
 
+    private function __construct(){
+        
+    }
+
+    public function getDatabase() : MysqliDb{
+        return $this->_Database;
+    }
+
     public function getLastFetchDataTime() : int{
         return $this->_dataTime;
     }
