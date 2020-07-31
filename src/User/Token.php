@@ -8,7 +8,7 @@ use MysqliDb;
 
 class Token{
     public static function generateTokenValue(string $username) : string{
-        return md5($username . rand(0,10000) . time() . Setting::TOKEN_SALT);
+        return bin2hex(random_bytes(16));
     }
     public static function verifyToken(string $token) : bool{
         return strlen($token) === 32;

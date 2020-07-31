@@ -43,8 +43,6 @@ class Setting{
     const PASSWORD_REGEX = '';
     const AVATOR_MAX_SIZE = 200;//In kB
     const PASSWORD_SALT = '';
-    const TOKEN_SALT = '';
-    const VERIFICATION_CODE_SALT = '';
     const TOKEN_AVAILABLE_DURATION = 3600;
     const VERIFICATION_CODE_AVAILABLE_DURATION = 300;
     const DEFAULT_COUNTRY = 'CN';

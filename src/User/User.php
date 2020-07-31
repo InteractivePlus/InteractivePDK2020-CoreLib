@@ -66,6 +66,10 @@ class User implements UserEntityInterface{
         return $this->_uid;
     }
 
+    public function isFormalUser() : bool{
+        return ($this->email_verified || $this->phone_verified);
+    }
+
     public function getUsername() : string{
         return $this->_username;
     }

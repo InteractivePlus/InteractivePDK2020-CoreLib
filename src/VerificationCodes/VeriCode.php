@@ -9,7 +9,7 @@ use MysqliDb;
 
 class VeriCode{
     public static function generateVerificationCode(string $username) : string{
-        return md5($username . rand(0,10000) . time() . Setting::VERIFICATION_CODE_SALT);
+        return bin2hex(random_bytes(16));
     }
     public static function verifyCode(string $code) : bool{
         return strlen($code) === 32;
