@@ -20,7 +20,7 @@ class VeriCode{
     private $_lastDataArray = NULL;
 
     private $_veriCode = NULL;
-    private $_username = NULL;
+    private $_uid = NULL;
     public $actionID = 0;
     private $_action_param_array = array();
     private $_sentMethod = SentMethod::NOTSENT;
@@ -78,16 +78,16 @@ class VeriCode{
         $this->_veriCode = $newCode;
     }
 
-    public function getUsername() : string{
-        return $this->_username;
+    public function getUID() : string{
+        return $this->_uid;
     }
 
     public function getUser() : User{
-        return User::fromUsername($this->_Database, $this->_username);
+        return User::fromUID($this->_Database, $this->_uid);
     }
 
     public function setUser(User $user) : void{
-        $this->_username = $user->getUsername();
+        $this->_uid = $user->getUID();
     }
 
     public function getActionParams() : array{
@@ -128,7 +128,7 @@ class VeriCode{
 
     public function readFromDataRow(array $DataRow) : void{
         $this->_veriCode = $DataRow['veri_code'];
-        $this->_username = $DataRow['username'];
+        $this->_uid = $DataRow['uid'];
         $this->actionID = $DataRow['action_id'];
         $this->_action_param_array = empty($DataRow['action_param']) ? array() : json_decode(gzuncompress($DataRow['action_param']),true);
         $this->_sentMethod = $DataRow['sent_method'];
@@ -141,7 +141,7 @@ class VeriCode{
     public function saveToDataArray() : array{
         $savedArray = array(
             'veri_code' => $this->_veriCode,
-            'username' => $this->_username,
+            'uid' => $this->_uid,
             'action_id' => $this->actionID,
             'action_param' => empty($this->_action_param_array) ? NULL : gzcompress(json_encode($this->_action_param_array)),
             'sent_method' => $this->_sentMethod,
@@ -271,7 +271,7 @@ class VeriCode{
         $returnObj->_lastDataArray = array();
 
         $returnObj->_veriCode = $actualCode;
-        $returnObj->_username = $user->getUsername();
+        $returnObj->_uid = $user->getUID();
         $returnObj->actionID = $actionId;
         $returnObj->_action_param_array = $actionParam;
         $returnObj->_sentMethod = SentMethod::NOTSENT;
@@ -302,7 +302,7 @@ class VeriCode{
         return $returnObj;
     }
 
-    public static function getSearchResults(MysqliDb $Database, int $action_id = -1, int $expireLow = -1, int $expireHigh = -1, string $username = '', int $numLimit = -1, int $offset = 0, string $CONNECT_OPERATOR = 'AND') : MultipleQueryResult{
+    public static function getSearchResults(MysqliDb $Database, int $action_id = -1, int $expireLow = -1, int $expireHigh = -1, int $uid = '', int $numLimit = -1, int $offset = 0, string $CONNECT_OPERATOR = 'AND') : MultipleQueryResult{
         $returnArr = array();
         if($action_id != -1){
             $Database->where('action_id',$action_id,'=',$CONNECT_OPERATOR);
@@ -313,8 +313,8 @@ class VeriCode{
         if($expireHigh != -1){
             $Database->where('expire_time',$expireHigh,'<=', $CONNECT_OPERATOR);
         }
-        if(!empty($username)){
-            $Database->where('username','%' . $username . '%', 'LIKE', $CONNECT_OPERATOR);
+        if(!empty($uid)){
+            $Database->where('uid',$uid,'=', $CONNECT_OPERATOR);
         }
         $limitParam = NULL;
         if($numLimit !== -1 && $offset === 0){

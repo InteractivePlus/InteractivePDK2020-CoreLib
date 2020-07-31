@@ -18,7 +18,7 @@ class Token{
     private $_lastDataArray = NULL;
 
     private $_token = NULL;
-    private $_username = NULL;
+    private $_uid = NULL;
     public $issueTime = 0;
     public $expireTime = 0;
     public $renewTime = 0;
@@ -72,16 +72,16 @@ class Token{
         $this->_token = $newTokenString;
     }
 
-    public function getUsername() : string{
-        return $this->_username;
+    public function getUID() : string{
+        return $this->_uid;
     }
 
     public function getUser() : User{
-        return User::fromUsername($this->_Database, $this->_username);
+        return User::fromUID($this->_Database, $this->_uid);
     }
 
     public function setUser(User $user) : void{
-        $this->_username = $user->getUsername();
+        $this->_uid = $user->getUID();
     }
 
     public function renew(int $availableDuration) : void{
@@ -100,7 +100,7 @@ class Token{
 
     public function readFromDataRow(array $dataRow) : void{
         $this->_token = $dataRow['token'];
-        $this->_username = $dataRow['username'];
+        $this->_uid = $dataRow['uid'];
         $this->issueTime = $dataRow['issue_time'];
         $this->expireTime = $dataRow['expire_time'];
         $this->renewTime = $dataRow['renew_time'];
@@ -109,7 +109,7 @@ class Token{
     public function saveToDataArray() : array{
         $returnArr = array(
             'token' => $this->_token,
-            'username' => $this->_username,
+            'uid' => $this->_uid,
             'issue_time' => $this->issueTime,
             'expire_time' => $this->expireTime,
             'renew_time' => $this->renewTime,
@@ -230,7 +230,7 @@ class Token{
         $returnObj->_dataTime = $ctime;
         $returnObj->_lastDataArray = array();
 
-        $returnObj->_username = $user->getUsername();
+        $returnObj->_uid = $user->getUID();
         $returnObj->_token = $actualToken;
         $returnObj->_client_addr = $client_ip;
         $returnObj->issueTime = $ctime;
