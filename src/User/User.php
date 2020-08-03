@@ -81,30 +81,14 @@ class User implements UserEntityInterface{
     public function changeUserName(string $newUserName) : void{
         if(!UserFormat::verifyUsername($newUserName)){
             throw new PDKException(30002,'Username format incorrect',array('credential'=>'username'));
+            return;
         }
         if($newUserName == $this->_username){
             return;
         }
         if(self::checkUsernameExist($this->_Database,$newUserName)){
             throw new PDKException(10004,'Username already exist');
-        }
-        if(!$this->_createNewUser){
-            //Update Database
-            $this->_Database->where('username',$this->_username);
-            $differenceArray = array(
-                'username' => $newUserName
-            );
-            $updateRst = $this->_Database->update('user_infos',$differenceArray);
-            if(!$updateRst){
-                throw new PDKException(
-                    50007,
-                    __CLASS__ . ' update error',
-                    array(
-                        'errNo'=>$this->_Database->getLastErrno(),
-                        'errMsg'=>$this->_Database->getLastError()
-                    )
-                );
-            }
+            return;
         }
         $this->_username = $newUserName;
     }
@@ -373,7 +357,7 @@ class User implements UserEntityInterface{
             $oldDataArray = $this->_lastDataArray;
             $differenceArray = \InteractivePlus\PDK2020Core\Utils\DataUtil::compareDataArrayDifference($newDataArray,$oldDataArray);
         }
-        $this->_Database->where('username',$this->_username);
+        $this->_Database->where('uid',$this->_uid);
         $updateRst = $this->_Database->update('user_infos',$differenceArray);
         if(!$updateRst){
             throw new PDKException(

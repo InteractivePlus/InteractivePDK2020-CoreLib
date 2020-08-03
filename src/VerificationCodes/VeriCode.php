@@ -342,7 +342,7 @@ class VeriCode{
         return new MultipleQueryResult($offset,$Database->count,$Database->totalCount,$veriCodeObjArr);
     }
 
-    public static function checkVeriCodeExist(MysqliDb $Database, string $veriCode){
+    public static function checkVeriCodeExist(MysqliDb $Database, string $veriCode) : bool{
         $Database->where('veri_code',$veriCode);
         $count = $Database->getValue('verification_codes','count(*)');
         if($count >= 1){

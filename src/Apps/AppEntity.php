@@ -1,33 +1,51 @@
 <?php
-namespace InteractivePlus\PDK2020Core\User;
+namespace InteractivePlus\PDK2020Core\Apps;
 
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
-use InteractivePlus\PDK2020Core\Settings\Setting;
-use InteractivePlus\PDK2020Core\Utils\DataUtil;
+use InteractivePlus\PDK2020Core\Formats\UserFormat;
+use InteractivePlus\PDK2020Core\Utils\IntlUtil;
 use MysqliDb;
 
-class Token{
-    public static function generateTokenValue(string $username) : string{
-        return bin2hex(random_bytes(16));
-    }
-    public static function verifyToken(string $token) : bool{
-        return strlen($token) === 32;
-    }
+class AppEntity{
     private $_Database = NULL;
     private $_dataTime = 0;
     private $_lastDataArray = NULL;
 
-    private $_token = NULL;
-    private $_uid = NULL;
-    public $issueTime = 0;
-    public $expireTime = 0;
-    public $renewTime = 0;
-    private $_client_addr = NULL;
+    private $_appuid = 0;
+    private $_display_name = NULL;
+    private $_client_id = NULL;
+    private $_client_secret = NULL;
+    private $_client_type = AppClientType::PRIVATE_CLIENT;
+    private $_developer_type = AppDeveloperType::THIRD_PARTY;
+    private $_reg_area = NULL;
+    public $reg_time = 0;
+    public $avatar_md5 = NULL;
 
-    private $_createNewToken = false;
+    private $_createNewAppEntity = false;
 
     private function __construct(){
         
+    }
+
+    public function getAppUID() : int{
+        return $this->_appuid;
+    }
+
+    public function getDisplayName() : string{
+        return $this->_display_name;
+    }
+
+    public function setDisplayName(string $displayName) : void{
+        if($this->_display_name === $displayName){
+            return;
+        }
+        if(!UserFormat::verifyDisplayName($displayName)){
+            throw new PDKException(30002,'Display name format incorrect',array('credential'=>'display_name'));
+            return;
+        }
+        if(self::checkDisplaynameExist($this->_Database,$displayName)){
+            throw new PDKException(20005,'Display name already exist');
+        }
     }
 
     public function getDatabase() : MysqliDb{
@@ -38,65 +56,7 @@ class Token{
         return $this->_dataTime;
     }
 
-    public function getTokenString() : string{
-        return $this->_token;
-    }
-
-    public function changeTokenString(string $newTokenString) : void{
-        if(!self::verifyToken($newTokenString)){
-            throw new PDKException(30002,'Token format incorrrect',array('credential'=>'token'));
-        }
-        if($this->_token == $newTokenString){
-            return;
-        }
-        if(self::checkTokenIDExist($this->_Database, $newTokenString)){
-            throw new PDKException(70003,'Token already exist');
-        }
-        if(!$this->_createNewToken){
-            $this->_Database->where('token',$this->_token);
-            $differenceArray = array(
-                'token' => $newTokenString
-            );
-            $updateRst = $this->_Database->update('logged_infos',$differenceArray);
-            if(!$updateRst){
-                throw new PDKException(
-                    50007,
-                    __CLASS__ . ' update error',
-                    array(
-                        'errNo'=>$this->_Database->getLastErrno(),
-                        'errMsg'=>$this->_Database->getLastError()
-                    )
-                );
-            }
-        }
-        $this->_token = $newTokenString;
-    }
-
-    public function getUID() : string{
-        return $this->_uid;
-    }
-
-    public function getUser() : User{
-        return User::fromUID($this->_Database, $this->_uid);
-    }
-
-    public function setUser(User $user) : void{
-        $this->_uid = $user->getUID();
-    }
-
-    public function renew(int $availableDuration) : void{
-        $ctime = time();
-        $this->expireTime = $ctime + $availableDuration;
-        $this->renewTime = $ctime;
-    }
-
-    public function getClientAddress() : string{
-        return $this->_client_addr;
-    }
-
-    public function setClientAddress(string $addr) : void{
-        $this->_client_addr = $addr;
-    }
+    //Getter/Setter goes here
 
     public function readFromDataRow(array $dataRow) : void{
         $this->_token = $dataRow['token'];
@@ -259,8 +219,8 @@ class Token{
         return $returnObj;
     }
 
-    public static function checkTokenIDExist(MysqliDb $Database, string $token) : bool{
-        $Database->where('token',$token);
+    public static function checkClientIDExist(MysqliDb $Database, string $clientID) : bool{
+        $Database->where('client_id',$clientID);
         $count = $Database->getValue('logged_infos','count(*)');
         if($count >= 1){
             return true;
@@ -268,7 +228,16 @@ class Token{
         return false;
     }
 
-    public static function clearTokenID(MysqliDb $Database,int $expireEarlierThan) : void{
+    public static function checkDisplaynameExist(MysqliDb $Database, string $displayName) : bool{
+        $Database->where('display_name',$displayName);
+        $count = $Database->getValue('app_infos','count(*)');
+        if($count >= 1){
+            return true;
+        }
+        return false;
+    }
+
+    public static function clearTokenID(MysqliDb $Database,int $expireEarlierThan){
         $Database->where('expire_time',$expireEarlierThan,'<');
         $updateRst = $Database->delete('logged_infos');
         if(!$updateRst){
