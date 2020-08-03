@@ -14,6 +14,13 @@ class PasswordFormat{
             return false;
         }
     }
+    public static function checkPasswordHash(string $passwordHash, string $stored_password_hash) : bool{
+        if(strtoupper($passwordHash) === strtoupper($stored_password_hash)){
+            return true;
+        }else{
+            return false;
+        }
+    }
     public static function encryptPassword(string $password) : string{
         return hash('sha256',$password . Setting::PASSWORD_SALT);
     }

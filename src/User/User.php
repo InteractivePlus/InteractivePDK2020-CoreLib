@@ -70,6 +70,10 @@ class User implements UserEntityInterface{
         return ($this->email_verified || $this->phone_verified);
     }
 
+    public function isValid() : bool{
+        return ($this->isFormalUser() && (!$this->is_frozen));
+    }
+
     public function getUsername() : string{
         return $this->_username;
     }

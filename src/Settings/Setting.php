@@ -43,6 +43,11 @@ class Setting{
     const PASSWORD_REGEX = '';
     const AVATOR_MAX_SIZE = 200;//In kB
     const PASSWORD_SALT = '';
+    const OAUTH_ENCRYPTION_KEY = '';
+    const OAUTH_JWT_KEYS = array(
+        'public_key' => '',
+        'private_key' => ''
+    );
     const TOKEN_AVAILABLE_DURATION = 3600;
     const VERIFICATION_CODE_AVAILABLE_DURATION = 300;
     const DEFAULT_COUNTRY = 'CN';
