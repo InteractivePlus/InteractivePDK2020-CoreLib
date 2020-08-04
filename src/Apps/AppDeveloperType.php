@@ -15,7 +15,7 @@ class AppDeveloperType{
                 return false;
         }
     }
-    public static function fixClientType(int $type) : int{
+    public static function fixDeveloperType(int $type) : int{
         if(!self::isDeveloperType($type)){
             return self::THIRD_PARTY;
         }else{

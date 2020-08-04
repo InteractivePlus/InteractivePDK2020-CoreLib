@@ -2,6 +2,7 @@
 namespace InteractivePlus\PDK2020Core\Apps;
 
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
+use InteractivePlus\PDK2020Core\Formats\APPFormat;
 use InteractivePlus\PDK2020Core\Formats\UserFormat;
 use InteractivePlus\PDK2020Core\Utils\IntlUtil;
 use MysqliDb;
@@ -20,11 +21,20 @@ class AppEntity{
     private $_reg_area = NULL;
     public $reg_time = 0;
     public $avatar_md5 = NULL;
+    private $_manage_list = array();
 
     private $_createNewAppEntity = false;
 
     private function __construct(){
         
+    }
+
+    public function getDatabase() : MysqliDb{
+        return $this->_Database;
+    }
+
+    public function getLastFetchDataTime() : int{
+        return $this->_dataTime;
     }
 
     public function getAppUID() : int{
@@ -46,17 +56,66 @@ class AppEntity{
         if(self::checkDisplaynameExist($this->_Database,$displayName)){
             throw new PDKException(20005,'Display name already exist');
         }
+        $this->_display_name = $displayName;
     }
 
-    public function getDatabase() : MysqliDb{
-        return $this->_Database;
+    public function getClientID() : string{
+        return $this->_client_id;
     }
 
-    public function getLastFetchDataTime() : int{
-        return $this->_dataTime;
+    public function setClientID(string $clientID) : void{
+        if(!APPFormat::checkClientID($clientID)){
+            throw new PDKException(30002,'ClientID format incorrect',array('credential'=>'client_id'));
+        }
+        if(self::checkClientIDExist($this->_Database, $clientID)){
+            throw new PDKException(20004,'Client ID already exist');
+        }
+        $this->_client_id = $clientID;
     }
 
-    //Getter/Setter goes here
+    public function getClientSecret() : string{
+        return $this->_client_secret;
+    }
+
+    public function checkClientSecret(string $clientSecret) : bool{
+        if(strtoupper($clientSecret) === strtoupper($this->getClientSecret())){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public function setClientSecret(string $clientSecret) : void{
+        if(!APPFormat::checkClientSecret($clientSecret)){
+            throw new PDKException(30002,'Client Secret format incorrect',array('credential'=>'client_secret'));
+        }
+        $this->_client_secret = $clientSecret;
+    }
+
+    public function getClientType() : int{
+        return $this->_client_type;
+    }
+
+    public function setClientType(int $type) : void{
+        $this->_client_type = AppClientType::fixClientType($type);
+    }
+
+    public function getDeveloperType() : int{
+        return $this->_developer_type;
+    }
+
+    public function setDeveloperType(int $type) : void{
+        $this->_developer_type = AppDeveloperType::fixDeveloperType($type);
+    }
+
+    public function getRegistrationArea() : string{
+        return $this->_reg_area;
+    }
+
+    public function setRegistrationArea(string $area) : void{
+        $this->_reg_area = IntlUtil::fixArea($area);
+    }
+    
 
     public function readFromDataRow(array $dataRow) : void{
         $this->_token = $dataRow['token'];
