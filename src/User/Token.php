@@ -217,6 +217,7 @@ class Token{
         if(self::checkTokenIDExist($Database,$actualToken)){
             if(!empty($customTokenID)){
                 throw new PDKException(70003, 'Token already exist');
+                return;
             }
             //regenerate actual token and return the new token.
             return self::createToken($Database,$user,$client_ip,$customTokenID);

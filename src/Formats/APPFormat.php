@@ -21,4 +21,11 @@ class APPFormat{
     public static function generateClientSecret() : string{
         return bin2hex(random_bytes(32));
     }
+    public static function encodeClientType(int $developerType, int $clientType) : int{
+        return (($developerType - 1) * 2) + ($clientType-1);
+    }
+    public static function decodeClientType(int $encodedType, int &$developerType, int &$clientType) : void{
+        $clientType = ($encodedType % 2) + 1;
+        $developerType = intdiv($encodedType,2) + 1;
+    }
 }

@@ -4,6 +4,9 @@ namespace InteractivePlus\PDK2020Core\Apps;
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
 use InteractivePlus\PDK2020Core\Formats\APPFormat;
 use InteractivePlus\PDK2020Core\Formats\UserFormat;
+use InteractivePlus\PDK2020Core\Settings\Setting;
+use InteractivePlus\PDK2020Core\User\User;
+use InteractivePlus\PDK2020Core\Utils\DataUtil;
 use InteractivePlus\PDK2020Core\Utils\IntlUtil;
 use MysqliDb;
 
@@ -21,7 +24,6 @@ class AppEntity{
     private $_reg_area = NULL;
     public $reg_time = 0;
     public $avatar_md5 = NULL;
-    private $_manage_list = array();
 
     private $_createNewAppEntity = false;
 
@@ -115,24 +117,30 @@ class AppEntity{
     public function setRegistrationArea(string $area) : void{
         $this->_reg_area = IntlUtil::fixArea($area);
     }
-    
 
     public function readFromDataRow(array $dataRow) : void{
-        $this->_token = $dataRow['token'];
-        $this->_uid = $dataRow['uid'];
-        $this->issueTime = $dataRow['issue_time'];
-        $this->expireTime = $dataRow['expire_time'];
-        $this->renewTime = $dataRow['renew_time'];
-        $this->_client_addr = $dataRow['client_addr'];
+        $this->_appuid = $dataRow['appuid'];
+        $this->_display_name = empty($dataRow['display_name']) ? NULL : $dataRow['display_name'];
+        $this->_client_id = $dataRow['client_id'];
+        $this->_client_secret = empty($dataRow['client_secret']) ? NULL : $dataRow['client_secret'];
+        
+        $developerTypeReceiver = 0;
+        $clientTypeReceiver = 0;
+        APPFormat::decodeClientType($dataRow['client_type'],$developerTypeReceiver,$clientTypeReceiver);
+        $this->_developer_type = $developerTypeReceiver;
+        $this->_client_type = $clientTypeReceiver;
+        $this->_reg_area = empty($dataRow['reg_area']) ? NULL : $dataRow['reg_area'];
+        $this->avatar_md5 = empty($dataRow['avatar']) ? NULL : $dataRow['avatar'];
     }
     public function saveToDataArray() : array{
         $returnArr = array(
-            'token' => $this->_token,
-            'uid' => $this->_uid,
-            'issue_time' => $this->issueTime,
-            'expire_time' => $this->expireTime,
-            'renew_time' => $this->renewTime,
-            'client_addr' => $this->_client_addr
+            //'appuid' => $this->_appuid,
+            'display_name' => $this->_display_name,
+            'client_id' => $this->_client_id,
+            'client_secret' => $this->_client_secret,
+            'client_type' => APPFormat::encodeClientType($this->_developer_type,$this->_client_type),
+            'reg_area' => $this->_reg_area,
+            'avatar' => $this->avatar_md5
         );
         return $returnArr;
     }
@@ -149,8 +157,8 @@ class AppEntity{
             $oldDataArray = $this->_lastDataArray;
             $differenceArray = DataUtil::compareDataArrayDifference($newDataArray,$oldDataArray);
         }
-        $this->_Database->where('token',$this->_token);
-        $updateRst = $this->_Database->update('logged_infos',$differenceArray);
+        $this->_Database->where('appuid',$this->_appuid);
+        $updateRst = $this->_Database->update('app_infos',$differenceArray);
         if(!$updateRst){
             throw new PDKException(
                 50007,
@@ -169,7 +177,7 @@ class AppEntity{
             throw new PDKException(50006,'No database connection stored in ' . __CLASS__ . ' class');
         }
         $dataArray = $this->saveToDataArray();
-        $insertedID = $this->_Database->insert('logged_infos',$dataArray);
+        $insertedID = $this->_Database->insert('app_infos',$dataArray);
         if(!$insertedID){
             throw new PDKException(
                 50007,
@@ -182,25 +190,29 @@ class AppEntity{
         }
         $this->_dataTime = time();
         $this->_lastDataArray = $dataArray;
+
+        //Update New UID
+        $newUID = $this->getDatabase()->getValue('app_infos','last_insert_id()');
+        $this->_appuid = $newUID;
     }
     public function saveToDatabase() : void{
-        if($this->_createNewToken){
+        if($this->_createNewAppEntity){
             $this->insertToDatabase();
-            $this->_createNewToken = false;
+            $this->_createNewAppEntity = false;
         }else{
             $this->updateToDatabase();
         }
     }
 
     public function delete() : void{
-        if($this->_createNewToken){
-            $this->_createNewToken = false;
+        if($this->_createNewAppEntity){
+            $this->_createNewAppEntity = false;
             return;
         }
-        //Delete existing record row of this token
+        //Delete existing record row of this app
         {
-            $this->_Database->where('token',$this->_token);
-            $updateRst = $this->_Database->delete('logged_infos');
+            $this->_Database->where('appuid',$this->_appuid);
+            $updateRst = $this->_Database->delete('app_infos');
             if(!$updateRst){
                 throw new PDKException(
                     50007,
@@ -212,36 +224,79 @@ class AppEntity{
                 );
             }
         }
-        //successfully deleted, now need to unset the Token variable
+        //Delete existing record row of managements of this app
+        {
+            $this->_Database->where('appuid',$this->_appuid);
+            $updateRst = $this->_Database->delete('app_manage_infos');
+            if(!$updateRst){
+                throw new PDKException(
+                    50007,
+                    __CLASS__ . ' update error',
+                    array(
+                        'errNo'=>$this->_Database->getLastErrno(),
+                        'errMsg'=>$this->_Database->getLastError()
+                    )
+                );
+            }
+        }
     }
     
-    public static function createToken(
+    public static function createAppEntity(
         MysqliDb $Database,
-        User $user,
-        string $client_ip,
-        string $customTokenID = NULL
-    ) : Token{
-        $actualToken = '';
-        if(!empty($customTokenID)){
-            if(self::verifyToken($customTokenID)){
-                $actualToken = $customTokenID;
+        User $owner,
+        string $displayName,
+        string $clientIDOverride = NULL,
+        string $clientSecretOverride = NULL,
+        int $developerType = AppDeveloperType::THIRD_PARTY,
+        int $clientType = AppClientType::PRIVATE_CLIENT,
+        string $regArea = Setting::DEFAULT_COUNTRY
+    ) : AppEntity{
+        $actualClientID = '';
+        if(!empty($clientIDOverride)){
+            if(APPFormat::checkClientID($clientIDOverride)){
+                $actualClientID = $clientIDOverride;
             }else{
-                throw new PDKException(30002,'Token format incorrect',array('credential'=>'token'));
+                throw new PDKException(30002,'ClientID format incorrect',array('credential'=>'client_id'));
             }
         }else{
-            $actualToken = self::generateTokenValue($user->getUsername());
-        }
-        
-        //check replication of tokens first
-        if(self::checkTokenIDExist($Database,$actualToken)){
-            if(!empty($customTokenID)){
-                throw new PDKException(70003, 'Token already exist');
-            }
-            //regenerate actual token and return the new token.
-            return self::createToken($Database,$user,$client_ip,$customTokenID);
+            $actualClientID = APPFormat::generateClientID();
         }
 
-        $returnObj = new Token();
+        $actualClientSecret = '';
+        if(!empty($clientSecretOverride)){
+            if(APPFormat::checkClientSecret($clientSecretOverride)){
+                $actualClientSecret = $clientSecretOverride;
+            }else{
+                throw new PDKException(30002,'Client Secret format incorrect',array('credential'=>'client_secret'));
+            }
+        }else{
+            $actualClientSecret = APPFormat::generateClientSecret();
+        }
+
+        if(!UserFormat::verifyDisplayName($displayName)){
+            throw new PDKException(30002,'Display Name format incorrect',array('credential'=>'display_name'));
+        }
+        
+        //check replication of clientID first
+        if(self::checkClientIDExist($Database,$actualClientID)){
+            if(!empty($customTokenID)){
+                throw new PDKException(20004, 'ClientID already exist');
+                return;
+            }
+            //regenerate clientID and return the new APPEntity.
+            return self::createAppEntity(
+                $Database,
+                $owner,
+                $displayName,
+                NULL,
+                $clientSecretOverride,
+                $developerType,
+                $clientType,
+                $regArea
+            );
+        }
+
+        $returnObj = new AppEntity();
         
         $ctime = time();
 
@@ -249,31 +304,49 @@ class AppEntity{
         $returnObj->_dataTime = $ctime;
         $returnObj->_lastDataArray = array();
 
-        $returnObj->_uid = $user->getUID();
-        $returnObj->_token = $actualToken;
-        $returnObj->_client_addr = $client_ip;
-        $returnObj->issueTime = $ctime;
-        $returnObj->renewTime = $ctime;
-        $returnObj->expireTime = $ctime + Setting::TOKEN_AVAILABLE_DURATION;
+        $returnObj->_appuid = -1;
+        $returnObj->_display_name = $displayName;
+        $returnObj->_client_id = $actualClientID;
+        $returnObj->_client_secret = $actualClientSecret;
+        $returnObj->_client_type = $clientType;
+        $returnObj->_developer_type = $developerType;
+        $returnObj->_reg_area = $regArea;
+        $returnObj->reg_time = time();
+        $returnObj->avatar_md5 = NULL;
 
-        $returnObj->_createNewToken = true;
+        $returnObj->_createNewAppEntity = true;
         return $returnObj;
     }
 
-    public static function fromTokenID(MysqliDb $Database, string $token){
-        if(!self::verifyToken($token)){
-            throw new PDKException(30002,'Token format incorrrect',array('credential'=>'token'));
+    public static function fromClientID(MysqliDb $Database, string $clientID){
+        if(!APPFormat::checkClientID($clientID)){
+            throw new PDKException(30002,'ClientID format incorrrect',array('credential'=>'client_id'));
         }
-        $Database->where('token',$token);
-        $dataRow = $Database->getOne('logged_infos');
+        $Database->where('client_id',$clientID);
+        $dataRow = $Database->getOne('app_infos');
         if(!$dataRow){
-            throw new PDKException(70002,'Token non-existant');
+            throw new PDKException(20001,'APP non-existant');
         }
-        $returnObj = new Token();
+        $returnObj = new AppEntity();
         $returnObj->_Database = $Database;
         $returnObj->_dataTime = time();
         $returnObj->_lastDataArray = $dataRow;
-        $returnObj->_createNewToken = false;
+        $returnObj->_createNewAppEntity = false;
+        $returnObj->readFromDataRow($dataRow);
+        return $returnObj;
+    }
+
+    public static function fromAPPUID(MysqliDb $Database, int $appUID){
+        $Database->where('appuid',$appUID);
+        $dataRow = $Database->getOne('app_infos');
+        if(!$dataRow){
+            throw new PDKException(20001,'APP non-existant');
+        }
+        $returnObj = new AppEntity();
+        $returnObj->_Database = $Database;
+        $returnObj->_dataTime = time();
+        $returnObj->_lastDataArray = $dataRow;
+        $returnObj->_createNewAppEntity = false;
         $returnObj->readFromDataRow($dataRow);
         return $returnObj;
     }
@@ -294,20 +367,5 @@ class AppEntity{
             return true;
         }
         return false;
-    }
-
-    public static function clearTokenID(MysqliDb $Database,int $expireEarlierThan){
-        $Database->where('expire_time',$expireEarlierThan,'<');
-        $updateRst = $Database->delete('logged_infos');
-        if(!$updateRst){
-            throw new PDKException(
-                50007,
-                __CLASS__ . ' update error',
-                array(
-                    'errNo'=>$Database->getLastErrno(),
-                    'errMsg'=>$Database->getLastError()
-                )
-            );
-        }
     }
 }

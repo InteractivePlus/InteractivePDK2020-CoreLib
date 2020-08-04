@@ -282,6 +282,7 @@ class User implements UserEntityInterface{
     }
 
     public function readFromDataRow(array $DataRow) : void{
+        $this->_uid = $DataRow['uid'];
         $this->_username = $DataRow['username'];
         $this->_display_name = $DataRow['display_name'];
         $this->_signature = $DataRow['signature'];
@@ -300,7 +301,6 @@ class User implements UserEntityInterface{
         }
         //Phone End
 
-        $this->_uid = $DataRow['uid'];
         $this->_settings_array = empty($DataRow['settings']) ? array() : json_decode(gzuncompress($DataRow['settings']),true);
         $this->email_verified = $DataRow['email_verified'] == 1;
         $this->phone_verified = $DataRow['phone_verified'] == 1;
@@ -391,6 +391,10 @@ class User implements UserEntityInterface{
         }
         $this->_dataTime = time();
         $this->_lastDataArray = $dataArray;
+
+        //Update New UID
+        $newUID = $this->getDatabase()->getValue('user_infos','last_insert_id()');
+        $this->_uid = $newUID;
     }
 
     public function saveToDatabase() : void{
@@ -447,6 +451,7 @@ class User implements UserEntityInterface{
         }
         $returnObj = new User();
         
+        $returnObj->_uid = -1;
         $returnObj->_username = $username;
         $returnObj->setPassword($password);
         $returnObj->_display_name = $displayName;
