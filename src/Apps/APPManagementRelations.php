@@ -2,6 +2,8 @@
 namespace InteractivePlus\PDK2020Core\Apps;
 
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
+use InteractivePlus\PDK2020Core\User\User;
+use InteractivePlus\PDK2020Core\Utils\DataUtil;
 use MysqliDb;
 
 class APPManagementRelations{
@@ -27,6 +29,74 @@ class APPManagementRelations{
         return $this->_dataTime;
     }
 
+    public function getAPPUID() : int{
+        return $this->_appuid;
+    }
+
+    public function getAPP() : AppEntity{
+        return AppEntity::fromAPPUID($this->_Database,$this->_appuid);
+    }
+
+    public function getOwnerUID() : int{
+        return $this->_owner;
+    }
+
+    public function getOwner() : User{
+        return User::fromUID($this->_Database, $this->_owner);
+    }
+
+    public function setOwner(User $owner) : void{
+        $uid = $owner->getUID();
+    }
+
+    public function getUserUIDRole(int $uid) : int{
+        if($this->_owner === $uid){
+            return APPManagementPermissionTypes::OWNER;
+        }
+        $otherPerm = $this->_otherPermissionList[$uid];
+        if($otherPerm === NULL){
+            return APPManagementPermissionTypes::PERMISSION_DENIED;
+        }else{
+            return $otherPerm;
+        }
+    }
+
+    public function getListWithoutOwner() : array{
+        return $this->_otherPermissionList;
+    }
+
+    public function getUserRole(User $user) : int{
+        return $this->getUserUIDRole($user->getUID());
+    }
+
+    public function deleteUserUIDFromList(int $uid) : bool{
+        $keyVal = $this->_otherPermissionList[$uid];
+        if($keyVal !== NULL){
+            unset($this->_otherPermissionList[$uid]);
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public function deleteUserFromList(User $user) : bool{
+        return $this->deleteUserUIDFromList($user->getUID());
+    }
+
+    public function setUserRole(User $user, int $role){
+        $role = APPManagementPermissionTypes::fixPermissionType($role);
+        switch($role){
+            case APPManagementPermissionTypes::OWNER:
+                $this->setOwner($user);
+            break;
+            case APPManagementPermissionTypes::PERMISSION_DENIED:
+                $this->deleteUserFromList($user);
+            break;
+            default:
+            $this->_otherPermissionList[$user->getUID()] = $role;
+        }
+    }
+
     public function readFromDataRows(array $dataRows) : void{
         //reset variables
         $this->_owner = NULL;
@@ -41,7 +111,7 @@ class APPManagementRelations{
                     $this->_owner = $singleRow['uid'];
                 break;
                 default:
-                    $this->_otherPermissionList[] = new APPManagementRelation($singleRow['uid'],$singleRow['role']);
+                    $this->_otherPermissionList[$singleRow['uid']] = $singleRow['role'];
             }
         }
         if(!empty($dataRows)){
@@ -61,11 +131,11 @@ class APPManagementRelations{
         );
 
         //Add other list members
-        foreach($this->_otherPermissionList as $permItem){
+        foreach($this->_otherPermissionList as $permItemKey => $permItemVal){
             $returnArr[] = array(
                 'appuid' => $this->_appuid,
-                'uid' => $permItem->userUID,
-                'role' => $permItem->getRole()
+                'uid' => $permItemKey,
+                'role' => $permItemVal
             );
         }
 
@@ -77,25 +147,77 @@ class APPManagementRelations{
         }
         
         $newDataArray = $this->saveToDataArray();
-        $differenceArray = array();
+        $addArray = array();
+        $deleteArray = array();
+        $changeArray = array();
+
+
         if(empty($this->_lastDataArray)){
-            $differenceArray = $newDataArray;
+            $addArray = $newDataArray;
         }else{
             $oldDataArray = $this->_lastDataArray;
-            $differenceArray = DataUtil::compareDataArrayDifference($newDataArray,$oldDataArray);
-        }
-        $this->_Database->where('appuid',$this->_appuid);
-        $updateRst = $this->_Database->update('app_infos',$differenceArray);
-        if(!$updateRst){
-            throw new PDKException(
-                50007,
-                __CLASS__ . ' update error',
-                array(
-                    'errNo'=>$this->_Database->getLastErrno(),
-                    'errMsg'=>$this->_Database->getLastError()
-                )
+            DataUtil::compareDataRowsChange(
+                $newDataArray,
+                $oldDataArray,
+                $changeArray,
+                $deleteArray,
+                $addArray,
+                'uid'
             );
         }
+
+        //add to database
+        foreach($addArray as $eachItemToAdd){
+            $insertedID = $this->_Database->insert('app_manage_infos',$eachItemToAdd);
+            if(!$insertedID){
+                throw new PDKException(
+                    50007,
+                    __CLASS__ . ' insert error',
+                    array(
+                        'errNo'=>$this->_Database->getLastErrno(),
+                        'errMsg'=>$this->_Database->getLastError()
+                    )
+                );
+            }
+        }
+
+        //delete from database
+        foreach($deleteArray as $eachItemToDel){
+            $this->_Database->where('appuid',$this->_appuid);
+            $this->_Database->where('uid',$eachItemToDel['uid']);
+            $updateRst = $this->_Database->delete('app_manage_infos');
+            if(!$updateRst){
+                throw new PDKException(
+                    50007,
+                    __CLASS__ . ' update error',
+                    array(
+                        'errNo'=>$this->_Database->getLastErrno(),
+                        'errMsg'=>$this->_Database->getLastError()
+                    )
+                );
+            }
+        }
+
+        //update database
+        foreach($changeArray as $eachItemToUpdate){
+            $this->_Database->where('appuid',$this->_appuid);
+            $this->_Database->where('uid',$eachItemToUpdate['after']['uid']);
+            $newRowArray = array(
+                'role' => $eachItemToUpdate['after']['role']
+            );
+            $updateRst = $this->_Database->update('app_manage_infos',$newRowArray);
+            if(!$updateRst){
+                throw new PDKException(
+                    50007,
+                    __CLASS__ . ' update error',
+                    array(
+                        'errNo'=>$this->_Database->getLastErrno(),
+                        'errMsg'=>$this->_Database->getLastError()
+                    )
+                );
+            }
+        }
+        
         $this->_dataTime = time();
         $this->_lastDataArray = $newDataArray;
     }
@@ -104,89 +226,44 @@ class APPManagementRelations{
             throw new PDKException(50006,'No database connection stored in ' . __CLASS__ . ' class');
         }
         $dataArray = $this->saveToDataArray();
-        $insertedID = $this->_Database->insert('app_infos',$dataArray);
-        if(!$insertedID){
-            throw new PDKException(
-                50007,
-                __CLASS__ . ' insert error',
-                array(
-                    'errNo'=>$this->_Database->getLastErrno(),
-                    'errMsg'=>$this->_Database->getLastError()
-                )
-            );
+
+        foreach($dataArray as $rowToAdd){
+            $insertedID = $this->_Database->insert('app_manage_infos',$rowToAdd);
+            if(!$insertedID){
+                throw new PDKException(
+                    50007,
+                    __CLASS__ . ' insert error',
+                    array(
+                        'errNo'=>$this->_Database->getLastErrno(),
+                        'errMsg'=>$this->_Database->getLastError()
+                    )
+                );
+            }
         }
         $this->_dataTime = time();
         $this->_lastDataArray = $dataArray;
-
-        //Update New UID
-        $newUID = $this->getDatabase()->getValue('app_infos','last_insert_id()');
-        $this->_appuid = $newUID;
     }
     public function saveToDatabase() : void{
-        if($this->_createNewAppEntity){
+        if($this->_createNewRelation){
             $this->insertToDatabase();
-            $this->_createNewAppEntity = false;
+            $this->_createNewRelation = false;
         }else{
             $this->updateToDatabase();
         }
     }
     
-    public static function createAppEntity(
+    public static function createAppManagementRelations(
         MysqliDb $Database,
-        User $owner,
-        string $displayName,
-        string $clientIDOverride = NULL,
-        string $clientSecretOverride = NULL,
-        int $developerType = AppDeveloperType::THIRD_PARTY,
-        int $clientType = AppClientType::PRIVATE_CLIENT,
-        string $regArea = Setting::DEFAULT_COUNTRY
-    ) : AppEntity{
-        $actualClientID = '';
-        if(!empty($clientIDOverride)){
-            if(APPFormat::checkClientID($clientIDOverride)){
-                $actualClientID = $clientIDOverride;
-            }else{
-                throw new PDKException(30002,'ClientID format incorrect',array('credential'=>'client_id'));
-            }
-        }else{
-            $actualClientID = APPFormat::generateClientID();
-        }
-
-        $actualClientSecret = '';
-        if(!empty($clientSecretOverride)){
-            if(APPFormat::checkClientSecret($clientSecretOverride)){
-                $actualClientSecret = $clientSecretOverride;
-            }else{
-                throw new PDKException(30002,'Client Secret format incorrect',array('credential'=>'client_secret'));
-            }
-        }else{
-            $actualClientSecret = APPFormat::generateClientSecret();
-        }
-
-        if(!UserFormat::verifyDisplayName($displayName)){
-            throw new PDKException(30002,'Display Name format incorrect',array('credential'=>'display_name'));
-        }
-        
+        AppEntity $app,
+        User $owner
+    ) : APPManagementRelations{
         //check replication of clientID first
-        if(self::checkClientIDExist($Database,$actualClientID)){
-            if(!empty($customTokenID)){
-                throw new PDKException(20004, 'ClientID already exist');
-                return;
-            }
-            //regenerate clientID and return the new APPEntity.
-            return self::createAppEntity(
-                $Database,
-                $owner,
-                $displayName,
-                NULL,
-                $clientSecretOverride,
-                $developerType,
-                $clientType,
-                $regArea
-            );
+        if(self::checkAPPUIDExist($Database,$app->getAppUID())){
+            throw new PDKException(20006, 'APP Management Relations already exist');
+            return;
         }
 
-        $returnObj = new AppEntity();
+        $returnObj = new APPManagementRelations();
         
         $ctime = time();
 
@@ -194,65 +271,32 @@ class APPManagementRelations{
         $returnObj->_dataTime = $ctime;
         $returnObj->_lastDataArray = array();
 
-        $returnObj->_appuid = -1;
-        $returnObj->_display_name = $displayName;
-        $returnObj->_client_id = $actualClientID;
-        $returnObj->_client_secret = $actualClientSecret;
-        $returnObj->_client_type = $clientType;
-        $returnObj->_developer_type = $developerType;
-        $returnObj->_reg_area = $regArea;
-        $returnObj->reg_time = time();
-        $returnObj->avatar_md5 = NULL;
+        $returnObj->_appuid = $app->getAppUID();
+        $returnObj->_owner = $owner->getUID();
+        $returnObj->_otherPermissionList = array();
 
-        $returnObj->_createNewAppEntity = true;
+        $returnObj->_createNewRelation = true;
         return $returnObj;
     }
 
-    public static function fromClientID(MysqliDb $Database, string $clientID){
-        if(!APPFormat::checkClientID($clientID)){
-            throw new PDKException(30002,'ClientID format incorrrect',array('credential'=>'client_id'));
-        }
-        $Database->where('client_id',$clientID);
-        $dataRow = $Database->getOne('app_infos');
-        if(!$dataRow){
-            throw new PDKException(20001,'APP non-existant');
-        }
-        $returnObj = new AppEntity();
-        $returnObj->_Database = $Database;
-        $returnObj->_dataTime = time();
-        $returnObj->_lastDataArray = $dataRow;
-        $returnObj->_createNewAppEntity = false;
-        $returnObj->readFromDataRow($dataRow);
-        return $returnObj;
-    }
-
-    public static function fromAPPUID(MysqliDb $Database, int $appUID){
+    public static function fromAPPUID(MysqliDb $Database, int $appUID) : APPManagementRelations{
         $Database->where('appuid',$appUID);
-        $dataRow = $Database->getOne('app_infos');
-        if(!$dataRow){
-            throw new PDKException(20001,'APP non-existant');
+        $dataRows = $Database->get('app_manage_infos');
+        if(!$dataRows){
+            throw new PDKException(20007,'APP Management Relations non-existant');
         }
-        $returnObj = new AppEntity();
+        $returnObj = new APPManagementRelations();
         $returnObj->_Database = $Database;
         $returnObj->_dataTime = time();
-        $returnObj->_lastDataArray = $dataRow;
-        $returnObj->_createNewAppEntity = false;
-        $returnObj->readFromDataRow($dataRow);
+        $returnObj->_lastDataArray = $dataRows;
+        $returnObj->_createNewRelation = false;
+        $returnObj->readFromDataRows($dataRows);
         return $returnObj;
     }
 
-    public static function checkClientIDExist(MysqliDb $Database, string $clientID) : bool{
-        $Database->where('client_id',$clientID);
-        $count = $Database->getValue('logged_infos','count(*)');
-        if($count >= 1){
-            return true;
-        }
-        return false;
-    }
-
-    public static function checkDisplaynameExist(MysqliDb $Database, string $displayName) : bool{
-        $Database->where('display_name',$displayName);
-        $count = $Database->getValue('app_infos','count(*)');
+    public static function checkAPPUIDExist(MysqliDb $Database, int $appuid) : bool{
+        $Database->where('appuid',$appuid);
+        $count = $Database->getValue('app_manage_infos','count(*)');
         if($count >= 1){
             return true;
         }

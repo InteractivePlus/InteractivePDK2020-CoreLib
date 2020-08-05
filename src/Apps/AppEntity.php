@@ -25,6 +25,8 @@ class AppEntity{
     public $reg_time = 0;
     public $avatar_md5 = NULL;
 
+    protected $_managementRelations = NULL;
+
     private $_createNewAppEntity = false;
 
     private function __construct(){
@@ -116,6 +118,10 @@ class AppEntity{
 
     public function setRegistrationArea(string $area) : void{
         $this->_reg_area = IntlUtil::fixArea($area);
+    }
+
+    public function getManageRelations() : APPManagementRelations{
+        return $this->_managementRelations;
     }
 
     public function readFromDataRow(array $dataRow) : void{
@@ -238,6 +244,7 @@ class AppEntity{
                     )
                 );
             }
+            $this->_managementRelations = NULL;
         }
     }
     
@@ -315,10 +322,18 @@ class AppEntity{
         $returnObj->avatar_md5 = NULL;
 
         $returnObj->_createNewAppEntity = true;
+        $returnObj->saveToDatabase();
+
+        $returnObj->_managementRelations = APPManagementRelations::createAppManagementRelations(
+            $Database,
+            $returnObj,
+            $owner
+        );
+        $returnObj->_managementRelations->saveToDatabase();
         return $returnObj;
     }
 
-    public static function fromClientID(MysqliDb $Database, string $clientID){
+    public static function fromClientID(MysqliDb $Database, string $clientID) : AppEntity{
         if(!APPFormat::checkClientID($clientID)){
             throw new PDKException(30002,'ClientID format incorrrect',array('credential'=>'client_id'));
         }
@@ -333,10 +348,14 @@ class AppEntity{
         $returnObj->_lastDataArray = $dataRow;
         $returnObj->_createNewAppEntity = false;
         $returnObj->readFromDataRow($dataRow);
+        $returnObj->_managementRelations = APPManagementRelations::fromAPPUID(
+            $Database,
+            $returnObj->getAppUID()
+        );
         return $returnObj;
     }
 
-    public static function fromAPPUID(MysqliDb $Database, int $appUID){
+    public static function fromAPPUID(MysqliDb $Database, int $appUID) : AppEntity{
         $Database->where('appuid',$appUID);
         $dataRow = $Database->getOne('app_infos');
         if(!$dataRow){
@@ -348,12 +367,16 @@ class AppEntity{
         $returnObj->_lastDataArray = $dataRow;
         $returnObj->_createNewAppEntity = false;
         $returnObj->readFromDataRow($dataRow);
+        $returnObj->_managementRelations = APPManagementRelations::fromAPPUID(
+            $Database,
+            $returnObj->getAppUID()
+        );
         return $returnObj;
     }
 
     public static function checkClientIDExist(MysqliDb $Database, string $clientID) : bool{
         $Database->where('client_id',$clientID);
-        $count = $Database->getValue('logged_infos','count(*)');
+        $count = $Database->getValue('app_infos','count(*)');
         if($count >= 1){
             return true;
         }
