@@ -24,6 +24,7 @@ class AppEntity{
     private $_reg_area = NULL;
     public $reg_time = 0;
     public $avatar_md5 = NULL;
+    private $_redirect_uri = NULL;
 
     protected $_managementRelations = NULL;
 
@@ -120,6 +121,17 @@ class AppEntity{
         $this->_reg_area = IntlUtil::fixArea($area);
     }
 
+    public function getRedirectURI() : string{
+        return $this->_redirect_uri;
+    }
+
+    public function setRedirectURI(string $URI) : void{
+        if(!empty($URI) && strlen($URI) > 500){
+            throw new PDKException(30002,'URI cannot exceed 500 characters',array('credential'=>'redirect_uri'));
+        }
+        $this->_redirect_uri = $URI;
+    }
+
     public function getManageRelations() : APPManagementRelations{
         return $this->_managementRelations;
     }
@@ -137,6 +149,7 @@ class AppEntity{
         $this->_client_type = $clientTypeReceiver;
         $this->_reg_area = empty($dataRow['reg_area']) ? NULL : $dataRow['reg_area'];
         $this->avatar_md5 = empty($dataRow['avatar']) ? NULL : $dataRow['avatar'];
+        $this->redirect_uri = empty($dataRow['redirect_uri']) ? NULL : $dataRow['redirect_uri'];
     }
     public function saveToDataArray() : array{
         $returnArr = array(
@@ -146,7 +159,8 @@ class AppEntity{
             'client_secret' => $this->_client_secret,
             'client_type' => APPFormat::encodeClientType($this->_developer_type,$this->_client_type),
             'reg_area' => $this->_reg_area,
-            'avatar' => $this->avatar_md5
+            'avatar' => $this->avatar_md5,
+            'redirect_uri' => $this->redirect_uri
         );
         return $returnArr;
     }
@@ -246,6 +260,7 @@ class AppEntity{
             }
             $this->_managementRelations = NULL;
         }
+        //TODO: Delete any related OAuth DB storage.
     }
     
     public static function createAppEntity(
@@ -320,6 +335,7 @@ class AppEntity{
         $returnObj->_reg_area = $regArea;
         $returnObj->reg_time = time();
         $returnObj->avatar_md5 = NULL;
+        $returnObj->_redirect_uri = NULL;
 
         $returnObj->_createNewAppEntity = true;
         $returnObj->saveToDatabase();
