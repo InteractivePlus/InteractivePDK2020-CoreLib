@@ -16,10 +16,10 @@ class APPFormat{
         }
     }
     public static function generateClientID() : string{
-        return bin2hex(random_bytes(16));
+        return strtolower(bin2hex(random_bytes(16)));
     }
     public static function generateClientSecret() : string{
-        return bin2hex(random_bytes(32));
+        return strtolower(bin2hex(random_bytes(32)));
     }
     public static function encodeClientType(int $developerType, int $clientType) : int{
         return (($developerType - 1) * 2) + ($clientType-1);

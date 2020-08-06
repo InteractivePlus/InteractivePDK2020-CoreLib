@@ -9,7 +9,7 @@ use MysqliDb;
 
 class VeriCode{
     public static function generateVerificationCode(string $username) : string{
-        return bin2hex(random_bytes(16));
+        return strtoupper(bin2hex(random_bytes(16)));
     }
     public static function verifyCode(string $code) : bool{
         return strlen($code) === 32;
@@ -51,6 +51,7 @@ class VeriCode{
         if(!self::verifyCode($newCode)){
             throw new PDKException(30002,'Verification Code not formatted',array('credential'=>'veri_code'));
         }
+        $newCode = strtoupper($newCode);
         if($newCode == $this->_veriCode){
             return;
         }
@@ -252,6 +253,8 @@ class VeriCode{
         }else{
             $actualCode = self::generateVerificationCode($user->getUsername());
         }
+
+        $actualCode = strtoupper($actualCode);
         
         //check replication of VeriCodes first
         if(self::checkVeriCodeExist($Database,$actualCode)){
@@ -289,6 +292,7 @@ class VeriCode{
         if(!self::verifyCode($code)){
             throw new PDKException(30002,'Verification Code format incorrect',array('credential'=>'veri_code'));
         }
+        $code = strtoupper($code);
         $Database->where('veri_code',$code);
         $dataRow = $Database->getOne('verification_codes');
         if(!$dataRow){
@@ -344,6 +348,7 @@ class VeriCode{
     }
 
     public static function checkVeriCodeExist(MysqliDb $Database, string $veriCode) : bool{
+        $veriCode = strtoupper($veriCode);
         $Database->where('veri_code',$veriCode);
         $count = $Database->getValue('verification_codes','count(*)');
         if($count >= 1){

@@ -22,6 +22,6 @@ class PasswordFormat{
         }
     }
     public static function encryptPassword(string $password) : string{
-        return hash('sha256',$password . Setting::PASSWORD_SALT);
+        return strtoupper(hash('sha256',$password . Setting::PASSWORD_SALT));
     }
 }

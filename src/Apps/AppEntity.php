@@ -75,7 +75,7 @@ class AppEntity{
         if(self::checkClientIDExist($this->_Database, $clientID)){
             throw new PDKException(20004,'Client ID already exist');
         }
-        $this->_client_id = $clientID;
+        $this->_client_id = strtolower($clientID);
     }
 
     public function getClientSecret() : string{
@@ -83,7 +83,7 @@ class AppEntity{
     }
 
     public function checkClientSecret(string $clientSecret) : bool{
-        if(strtoupper($clientSecret) === strtoupper($this->getClientSecret())){
+        if(strtolower($clientSecret) === strtolower($this->getClientSecret())){
             return true;
         }else{
             return false;
@@ -94,7 +94,7 @@ class AppEntity{
         if(!APPFormat::checkClientSecret($clientSecret)){
             throw new PDKException(30002,'Client Secret format incorrect',array('credential'=>'client_secret'));
         }
-        $this->_client_secret = $clientSecret;
+        $this->_client_secret = strtolower($clientSecret);
     }
 
     public function getClientType() : int{
@@ -284,6 +284,8 @@ class AppEntity{
             $actualClientID = APPFormat::generateClientID();
         }
 
+        $actualClientID = strtolower($actualClientID);
+
         $actualClientSecret = '';
         if(!empty($clientSecretOverride)){
             if(APPFormat::checkClientSecret($clientSecretOverride)){
@@ -294,6 +296,8 @@ class AppEntity{
         }else{
             $actualClientSecret = APPFormat::generateClientSecret();
         }
+
+        $actualClientSecret = strtolower($actualClientSecret);
 
         if(!UserFormat::verifyDisplayName($displayName)){
             throw new PDKException(30002,'Display Name format incorrect',array('credential'=>'display_name'));
@@ -353,6 +357,7 @@ class AppEntity{
         if(!APPFormat::checkClientID($clientID)){
             throw new PDKException(30002,'ClientID format incorrrect',array('credential'=>'client_id'));
         }
+        $clientID = strtolower($clientID);
         $Database->where('client_id',$clientID);
         $dataRow = $Database->getOne('app_infos');
         if(!$dataRow){
@@ -391,6 +396,7 @@ class AppEntity{
     }
 
     public static function checkClientIDExist(MysqliDb $Database, string $clientID) : bool{
+        $clientID = strtolower($clientID);
         $Database->where('client_id',$clientID);
         $count = $Database->getValue('app_infos','count(*)');
         if($count >= 1){

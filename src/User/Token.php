@@ -8,7 +8,7 @@ use MysqliDb;
 
 class Token{
     public static function generateTokenValue(string $username) : string{
-        return bin2hex(random_bytes(16));
+        return strtoupper(bin2hex(random_bytes(16)));
     }
     public static function verifyToken(string $token) : bool{
         return strlen($token) === 32;
@@ -46,6 +46,7 @@ class Token{
         if(!self::verifyToken($newTokenString)){
             throw new PDKException(30002,'Token format incorrrect',array('credential'=>'token'));
         }
+        $newTokenString = strtoupper($newTokenString);
         if($this->_token == $newTokenString){
             return;
         }
@@ -212,6 +213,8 @@ class Token{
         }else{
             $actualToken = self::generateTokenValue($user->getUsername());
         }
+
+        $actualToken = strtoupper($actualToken);
         
         //check replication of tokens first
         if(self::checkTokenIDExist($Database,$actualToken)){
@@ -246,6 +249,7 @@ class Token{
         if(!self::verifyToken($token)){
             throw new PDKException(30002,'Token format incorrrect',array('credential'=>'token'));
         }
+        $token = strtoupper($token);
         $Database->where('token',$token);
         $dataRow = $Database->getOne('logged_infos');
         if(!$dataRow){
@@ -261,6 +265,7 @@ class Token{
     }
 
     public static function checkTokenIDExist(MysqliDb $Database, string $token) : bool{
+        $token = strtoupper($token);
         $Database->where('token',$token);
         $count = $Database->getValue('logged_infos','count(*)');
         if($count >= 1){

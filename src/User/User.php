@@ -137,7 +137,7 @@ class User implements UserEntityInterface{
     }
 
     public function setPasswordHash(string $passwordHash) : void{
-        $this->_password_hash = $passwordHash;
+        $this->_password_hash = strtoupper($passwordHash);
     }
 
     public function getEmail() : string{
