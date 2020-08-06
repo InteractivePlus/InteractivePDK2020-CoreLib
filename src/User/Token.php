@@ -69,6 +69,7 @@ class Token{
                     )
                 );
             }
+            $this->_lastDataArray['token'] = $newTokenString;
         }
         $this->_token = $newTokenString;
     }

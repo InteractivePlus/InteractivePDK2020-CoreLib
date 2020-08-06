@@ -75,6 +75,7 @@ class VeriCode{
                     )
                 );
             }
+            $this->_lastDataArray['veri_code'] = $newCode;
         }
         $this->_veriCode = $newCode;
     }
