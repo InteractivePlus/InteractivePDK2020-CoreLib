@@ -19,7 +19,7 @@ class Token{
 
     private $_refresh_token = NULL;
     private $_token = NULL;
-    private $_uid = NULL;
+    private $_uid = 0;
     public $issueTime = 0;
     public $expireTime = 0;
     public $renewTime = 0;
@@ -390,6 +390,21 @@ class Token{
 
     public static function clearTokenWithRefreshExpire(MysqliDb $Database,int $refreshExpireEarlierThan) : void{
         $Database->where('refresh_expire_time',$refreshExpireEarlierThan,'<');
+        $updateRst = $Database->delete('logged_infos');
+        if(!$updateRst){
+            throw new PDKException(
+                50007,
+                __CLASS__ . ' update error',
+                array(
+                    'errNo'=>$Database->getLastErrno(),
+                    'errMsg'=>$Database->getLastError()
+                )
+            );
+        }
+    }
+
+    public static function deleteUser(MysqliDb $Database, int $uid) : void{
+        $Database->where('uid',$uid);
         $updateRst = $Database->delete('logged_infos');
         if(!$updateRst){
             throw new PDKException(

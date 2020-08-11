@@ -9,6 +9,7 @@ use InteractivePlus\PDK2020Core\User\User;
 use InteractivePlus\PDK2020Core\Utils\DataUtil;
 use InteractivePlus\PDK2020Core\Utils\IntlUtil;
 use InteractivePlus\PDK2020Core\OAuth;
+use InteractivePlus\PDK2020Core\Utils\MultipleQueryResult;
 use MysqliDb;
 
 class AppEntity{
@@ -223,6 +224,9 @@ class AppEntity{
         }else{
             $this->updateToDatabase();
         }
+        if($this->_managementRelations !== NULL){
+            $this->getManageRelations()->saveToDatabase();
+        }
     }
 
     public function delete() : void{
@@ -415,5 +419,31 @@ class AppEntity{
             return true;
         }
         return false;
+    }
+
+    public static function searchWithUser(MysqliDb $Database, User $user, int $numLimit = -1, int $offset = 0) : MultipleQueryResult{
+        $Database->where('uid',$user->getUID());
+
+        $limitParam = NULL;
+        if($numLimit !== -1 && $offset === 0){
+            $limitParam = $numLimit;
+        }else if($numLimit !== -1 && $offset !== 0){
+            $limitParam = array($offset,$numLimit);
+        }
+
+
+        $resultArray = $Database->withTotalCount()->get('app_manage_infos',$limitParam);
+        if($Database->count <= 0){
+            return new MultipleQueryResult($offset,0,$Database->totalCount,NULL);
+        }
+
+        $dataTime = time();
+        
+        $appEntityArr = array();
+        foreach($resultArray as $singleRow){
+            $appEntityObj = self::fromAPPUID($Database,$singleRow['appuid']);
+            $appEntityArr[] = $appEntityObj;
+        }
+        return new MultipleQueryResult($offset,$Database->count,$Database->totalCount,$appEntityArr);
     }
 }

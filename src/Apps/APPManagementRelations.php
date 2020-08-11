@@ -302,4 +302,29 @@ class APPManagementRelations{
         }
         return false;
     }
+
+    public static function checkUserIsAnyOwner(MysqliDb $Database, int $uid) : bool{
+        $Database->where('uid',$uid);
+        $Database->where('role',APPManagementPermissionTypes::OWNER);
+        $count = $Database->getValue('app_manage_infos','count(*)');
+        if($count >= 1){
+            return true;
+        }
+        return false;
+    }
+
+    public static function deleteUserFromAllLists(MysqliDb $Database, int $uid) : void{
+        $Database->where('uid',$uid);
+        $updateRst = $Database->delete('app_manage_infos');
+        if(!$updateRst){
+            throw new PDKException(
+                50007,
+                __CLASS__ . ' update error',
+                array(
+                    'errNo'=>$Database->getLastErrno(),
+                    'errMsg'=>$Database->getLastError()
+                )
+            );
+        }
+    }
 }

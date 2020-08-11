@@ -357,4 +357,19 @@ class VeriCode{
         }
         return false;
     }
+
+    public static function deleteUser(MysqliDb $Database, int $uid) : void{
+        $Database->where('uid',$uid);
+        $updateRst = $Database->delete('verification_codes');
+        if(!$updateRst){
+            throw new PDKException(
+                50007,
+                __CLASS__ . ' update error',
+                array(
+                    'errNo'=>$Database->getLastErrno(),
+                    'errMsg'=>$Database->getLastError()
+                )
+            );
+        }
+    }
 }

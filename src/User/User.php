@@ -1,6 +1,8 @@
 <?php
 namespace InteractivePlus\PDK2020Core\User;
 
+use InteractivePlus\PDK2020Core\Apps\AppEntity;
+use InteractivePlus\PDK2020Core\Apps\APPManagementRelations;
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
 use InteractivePlus\PDK2020Core\Settings\Setting;
 use InteractivePlus\PDK2020Core\UserGroup\UserGroup;
@@ -10,6 +12,8 @@ use MysqliDb;
 use InteractivePlus\PDK2020Core\Utils\MultipleQueryResult;
 use InteractivePlus\PDK2020Core\Formats\PasswordFormat;
 use InteractivePlus\PDK2020Core\Formats\UserFormat;
+use InteractivePlus\PDK2020Core\OAuth;
+use InteractivePlus\PDK2020Core\VerificationCodes\VeriCode;
 use libphonenumber\PhoneNumber;
 use League\OAuth2\Server\Entities\UserEntityInterface;
 
@@ -407,7 +411,38 @@ class User implements UserEntityInterface{
     }
 
     public function delete() : void{
-        //TODO: Finish this function
+        //First check if the user has any OWNER role for any OAUTH APP
+        if(APPManagementRelations::checkUserIsAnyOwner($this->_Database,$this->_uid)){
+            throw new PDKException(30003,'Cannot delete a user who still has undeleted APPs');
+            return;
+        }
+        //No Owner Relationships, delete user from all management lists.
+        APPManagementRelations::deleteUserFromAllLists($this->_Database,$this->_uid);
+        //Delete all tokens
+        Token::deleteUser($this->_Database,$this->_uid);
+        //Delete all verification codes
+        VeriCode::deleteUser($this->_Database,$this->_uid);
+        //Delete all OAuth Auth Codes + Access Tokens + Refresh Tokens
+        OAuth\AuthCode::deleteUser($this->_Database,$this->_uid);
+        OAuth\OAuthTokenPair::deleteUser($this->_Database,$this->_uid);
+        
+        //Now everything related to this user is deleted, let's delete this user from DB.
+        if(!$this->_createNewUser){
+            $this->_Database->where('uid',$this->_uid);
+            $updateRst = $this->_Database->delete('user_infos');
+            if(!$updateRst){
+                throw new PDKException(
+                    50007,
+                    __CLASS__ . ' update error',
+                    array(
+                        'errNo'=>$this->_Database->getLastErrno(),
+                        'errMsg'=>$this->_Database->getLastError()
+                    )
+                );
+            }
+        }
+
+        //finish deleting, now need to unset the User variable.
     }
 
     public static function createUser(
@@ -467,6 +502,8 @@ class User implements UserEntityInterface{
         $returnObj->_Database = $Database;
         $returnObj->_dataTime = time();
         $returnObj->_lastDataArray = array();
+
+        $returnObj->saveToDatabase(); //obtain uid
         return $returnObj;
     }
 
