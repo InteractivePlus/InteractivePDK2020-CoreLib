@@ -43,12 +43,8 @@ class Setting{
     const PASSWORD_REGEX = '';
     const AVATOR_MAX_SIZE = 200;//In kB
     const PASSWORD_SALT = '';
-    const OAUTH_ENCRYPTION_KEY = '';
-    const OAUTH_JWT_KEYS = array(
-        'public_key' => '',
-        'private_key' => ''
-    );
-    const TOKEN_AVAILABLE_DURATION = 1 * 30 * 24 * 60; //1 month
+    const TOKEN_AVAILABLE_DURATION = 3 * 24 * 60; //3 days
+    const REFRESH_TOKEN_AVAILABLE_DURATION = 1 * 30 * 24 * 60; //1 month
     const VERIFICATION_CODE_AVAILABLE_DURATION = 5 * 60; //5 min
     const OAUTH_AUTH_CODE_AVAILABLE_DURATION = 2 * 60; //2 min
     const OAUTH_ACCESS_TOKEN_AVAILABLE_DURATION = 1 * 24 * 60; //1 day

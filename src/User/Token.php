@@ -17,11 +17,13 @@ class Token{
     private $_dataTime = 0;
     private $_lastDataArray = NULL;
 
+    private $_refresh_token = NULL;
     private $_token = NULL;
     private $_uid = NULL;
     public $issueTime = 0;
     public $expireTime = 0;
     public $renewTime = 0;
+    public $refresh_expire_time = 0;
     private $_client_addr = NULL;
 
     private $_createNewToken = false;
@@ -36,6 +38,42 @@ class Token{
 
     public function getLastFetchDataTime() : int{
         return $this->_dataTime;
+    }
+
+    public function getRefreshTokenString() : string{
+        return $this->_refresh_token;
+    }
+
+    public function changeRefreshTokenString(string $newRefreshToken) : void{
+        if(!self::verifyToken($newRefreshToken)){
+            throw new PDKException(30002,'Refresh Token format incorrrect',array('credential'=>'refresh_token'));
+        }
+        $newRefreshToken = strtoupper($newRefreshToken);
+        if($this->_refresh_token == $newRefreshToken){
+            return;
+        }
+        if(self::checkRefreshTokenExist($this->_Database, $newRefreshToken)){
+            throw new PDKException(70006,'Refresh Token already exist');
+        }
+        if(!$this->_createNewToken){
+            $this->_Database->where('token',$this->_token);
+            $differenceArray = array(
+                'refresh_token' => $newRefreshToken
+            );
+            $updateRst = $this->_Database->update('logged_infos',$differenceArray);
+            if(!$updateRst){
+                throw new PDKException(
+                    50007,
+                    __CLASS__ . ' update error',
+                    array(
+                        'errNo'=>$this->_Database->getLastErrno(),
+                        'errMsg'=>$this->_Database->getLastError()
+                    )
+                );
+            }
+            $this->_lastDataArray['refresh_token'] = $newRefreshToken;
+        }
+        $this->_refresh_token = $newRefreshToken;
     }
 
     public function getTokenString() : string{
@@ -86,10 +124,11 @@ class Token{
         $this->_uid = $user->getUID();
     }
 
-    public function renew(int $availableDuration) : void{
+    public function renew(int $availableDuration, int $refreshAvailableDuration) : void{
         $ctime = time();
         $this->expireTime = $ctime + $availableDuration;
         $this->renewTime = $ctime;
+        $this->refresh_expire_time = $ctime + $refreshAvailableDuration;
     }
 
     public function getClientAddress() : string{
@@ -101,20 +140,24 @@ class Token{
     }
 
     public function readFromDataRow(array $dataRow) : void{
+        $this->_refresh_token = $dataRow['refresh_token'];
         $this->_token = $dataRow['token'];
         $this->_uid = $dataRow['uid'];
         $this->issueTime = $dataRow['issue_time'];
         $this->expireTime = $dataRow['expire_time'];
         $this->renewTime = $dataRow['renew_time'];
+        $this->refresh_expire_time = $dataRow['refresh_expire_time'];
         $this->_client_addr = $dataRow['client_addr'];
     }
     public function saveToDataArray() : array{
         $returnArr = array(
+            'refresh_token' => $this->_refresh_token,
             'token' => $this->_token,
             'uid' => $this->_uid,
             'issue_time' => $this->issueTime,
             'expire_time' => $this->expireTime,
             'renew_time' => $this->renewTime,
+            'refresh_expire_time' => $this->refresh_expire_time,
             'client_addr' => $this->_client_addr
         );
         return $returnArr;
@@ -202,7 +245,8 @@ class Token{
         MysqliDb $Database,
         User $user,
         string $client_ip,
-        string $customTokenID = NULL
+        string $customTokenID = NULL,
+        string $customRefreshToken = NULL
     ) : Token{
         $actualToken = '';
         if(!empty($customTokenID)){
@@ -224,7 +268,30 @@ class Token{
                 return;
             }
             //regenerate actual token and return the new token.
-            return self::createToken($Database,$user,$client_ip,$customTokenID);
+            return self::createToken($Database,$user,$client_ip,$customTokenID,$customRefreshToken);
+        }
+
+        $actualRefreshToken = '';
+        if(!empty($customRefreshToken)){
+            if(self::verifyToken($customRefreshToken)){
+                $actualRefreshToken = $customRefreshToken;
+            }else{
+                throw new PDKException(30002,'Refresh Token format incorrect',array('credential'=>'refresh_token'));
+            }
+        }else{
+            $actualRefreshToken = self::generateTokenValue($user->getUsername());
+        }
+
+        $actualRefreshToken = strtoupper($actualRefreshToken);
+        
+        //check replication of tokens first
+        if(self::checkRefreshTokenExist($Database,$actualRefreshToken)){
+            if(!empty($customRefreshToken)){
+                throw new PDKException(70006, 'Refresh Token already exist');
+                return;
+            }
+            //regenerate actual token and return the new token.
+            return self::createToken($Database,$user,$client_ip,$customTokenID,$customRefreshToken);
         }
 
         $returnObj = new Token();
@@ -237,10 +304,12 @@ class Token{
 
         $returnObj->_uid = $user->getUID();
         $returnObj->_token = $actualToken;
+        $returnObj->_refresh_token = $actualRefreshToken;
         $returnObj->_client_addr = $client_ip;
         $returnObj->issueTime = $ctime;
         $returnObj->renewTime = $ctime;
         $returnObj->expireTime = $ctime + Setting::TOKEN_AVAILABLE_DURATION;
+        $returnObj->refresh_expire_time = $ctime + Setting::REFRESH_TOKEN_AVAILABLE_DURATION;
 
         $returnObj->_createNewToken = true;
         return $returnObj;
@@ -265,6 +334,25 @@ class Token{
         return $returnObj;
     }
 
+    public static function fromRefreshToken(MysqliDb $Database, string $refreshToken){
+        if(!self::verifyToken($refreshToken)){
+            throw new PDKException(30002,'Token format incorrrect',array('credential'=>'token'));
+        }
+        $refreshToken = strtoupper($refreshToken);
+        $Database->where('refresh_token',$refreshToken);
+        $dataRow = $Database->getOne('logged_infos');
+        if(!$dataRow){
+            throw new PDKException(70005,'Refresh Token non-existant');
+        }
+        $returnObj = new Token();
+        $returnObj->_Database = $Database;
+        $returnObj->_dataTime = time();
+        $returnObj->_lastDataArray = $dataRow;
+        $returnObj->_createNewToken = false;
+        $returnObj->readFromDataRow($dataRow);
+        return $returnObj;
+    }
+
     public static function checkTokenIDExist(MysqliDb $Database, string $token) : bool{
         $token = strtoupper($token);
         $Database->where('token',$token);
@@ -275,8 +363,33 @@ class Token{
         return false;
     }
 
+    public static function checkRefreshTokenExist(MysqliDb $Database, string $token) : bool{
+        $token = strtoupper($token);
+        $Database->where('refresh_token',$token);
+        $count = $Database->getValue('logged_infos','count(*)');
+        if($count >= 1){
+            return true;
+        }
+        return false;
+    }
+
     public static function clearTokenID(MysqliDb $Database,int $expireEarlierThan) : void{
         $Database->where('expire_time',$expireEarlierThan,'<');
+        $updateRst = $Database->delete('logged_infos');
+        if(!$updateRst){
+            throw new PDKException(
+                50007,
+                __CLASS__ . ' update error',
+                array(
+                    'errNo'=>$Database->getLastErrno(),
+                    'errMsg'=>$Database->getLastError()
+                )
+            );
+        }
+    }
+
+    public static function clearTokenWithRefreshExpire(MysqliDb $Database,int $refreshExpireEarlierThan) : void{
+        $Database->where('refresh_expire_time',$refreshExpireEarlierThan,'<');
         $updateRst = $Database->delete('logged_infos');
         if(!$updateRst){
             throw new PDKException(
