@@ -5,7 +5,7 @@ class MultipleQueryResult{
     public $resultCount;
     public $overallCount;
     public $resultDatas;
-    public function __construct($offset, $count, $overallCount, $dataRows){
+    public function __construct(int $offset, int $count, int $overallCount, ?array $dataRows){
         $this->resultOffset = $offset;
         $this->resultCount = $count;
         $this->overallCount = $overallCount;

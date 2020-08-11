@@ -8,6 +8,7 @@ use InteractivePlus\PDK2020Core\Settings\Setting;
 use InteractivePlus\PDK2020Core\User\User;
 use InteractivePlus\PDK2020Core\Utils\DataUtil;
 use InteractivePlus\PDK2020Core\Utils\IntlUtil;
+use InteractivePlus\PDK2020Core\OAuth;
 use MysqliDb;
 
 class AppEntity{
@@ -260,7 +261,9 @@ class AppEntity{
             }
             $this->_managementRelations = NULL;
         }
-        //TODO: Delete any related OAuth DB storage.
+        //Delete any related OAuth DB storage.
+        OAuth\AuthCode::deleteAPP($this->_Database,$this->_appuid);
+        OAuth\OAuthTokenPair::deleteAPP($this->_Database,$this->_appuid);
     }
     
     public static function createAppEntity(

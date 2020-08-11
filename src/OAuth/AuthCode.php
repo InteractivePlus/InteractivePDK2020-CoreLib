@@ -46,7 +46,7 @@ class AuthCode{
 
     public function changeAuthorizationCode(string $newCode) : void{
         if(!OAuthFormat::verifyAuthCode($newCode)){
-            throw new PDKException(30002,'Auth Code Format incorrect',array('credential'=>'authorization_code'));
+            throw new PDKException(90100,'Auth Code Format incorrect',array('credential'=>'authorization_code'));
         }
         $newCode = strtolower($newCode);
         if(self::checkAuthCodeExist($this->_Database,$newCode)){
@@ -269,7 +269,7 @@ class AuthCode{
             if(OAuthFormat::verifyAccessToken($customAuthCode)){
                 $actualAuthCode = $customAuthCode;
             }else{
-                throw new PDKException(30002,'OAuth Authorization Code format incorrect',array('credential'=>'authorization_code'));
+                throw new PDKException(90100,'OAuth Authorization Code format incorrect',array('credential'=>'authorization_code'));
             }
         }else{
             $actualAuthCode = OAuthFormat::generateAccessToken();
@@ -327,7 +327,7 @@ class AuthCode{
 
     public static function fromAuthorizationCode(MysqliDb $Database, string $authCode){
         if(!OAuthFormat::verifyAccessToken($authCode)){
-            throw new PDKException(30002,'OAuth Auth Code format incorrrect',array('credential'=>'authorization_code'));
+            throw new PDKException(90100,'OAuth Auth Code format incorrrect',array('credential'=>'authorization_code'));
         }
         $authCode = strtolower($authCode);
         $Database->where('authorization_code',$authCode);
@@ -356,6 +356,36 @@ class AuthCode{
 
     public static function clearAuthorizationCodes(MysqliDb $Database,int $expireEarlierThan) : void{
         $Database->where('expire_time',$expireEarlierThan,'<');
+        $updateRst = $Database->delete('oauth_authorization_codes');
+        if(!$updateRst){
+            throw new PDKException(
+                50007,
+                __CLASS__ . ' update error',
+                array(
+                    'errNo'=>$Database->getLastErrno(),
+                    'errMsg'=>$Database->getLastError()
+                )
+            );
+        }
+    }
+
+    public static function deleteUser(MysqliDb $Database, int $uid) : void{
+        $Database->where('uid',$uid);
+        $updateRst = $Database->delete('oauth_authorization_codes');
+        if(!$updateRst){
+            throw new PDKException(
+                50007,
+                __CLASS__ . ' update error',
+                array(
+                    'errNo'=>$Database->getLastErrno(),
+                    'errMsg'=>$Database->getLastError()
+                )
+            );
+        }
+    }
+
+    public static function deleteAPP(MysqliDb $Database, int $appuid) : void{
+        $Database->where('appuid',$appuid);
         $updateRst = $Database->delete('oauth_authorization_codes');
         if(!$updateRst){
             throw new PDKException(
