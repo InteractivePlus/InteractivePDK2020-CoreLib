@@ -57,5 +57,6 @@ class Setting{
     );
     const ALLOW_TOKEN_IP_CHANGE = true;
     const ALLOW_VERICODE_IP_CHANGE = false;
+    const AVATAR_SIZE_PIXELS = 300;
     const DEBUG_MODE = true;
 }
