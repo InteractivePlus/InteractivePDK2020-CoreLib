@@ -1,9 +1,8 @@
 <?php
-namespace InteractivePlus\PDK2020Core\Implementions;
+namespace InteractivePlus\PDK2020Core\Implementions\Storages;
 
 use InteractivePlus\PDK2020Core\Exceptions\PDKException;
 use InteractivePlus\PDK2020Core\Interfaces\Storages\ProfileImageStorage;
-use MongoDB\DeleteResult;
 use MysqliDb;
 
 class ProfileImageMySQLImpl implements ProfileImageStorage{

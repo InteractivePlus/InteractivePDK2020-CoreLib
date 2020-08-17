@@ -9,7 +9,8 @@
         "thingengineer/mysqli-database-class": "~2.9",
         "giggsey/libphonenumber-for-php": "~8.12",
         "league/oauth2-server": "~8.1",
-        "mongodb/mongodb": "~1.6"
+        "mongodb/mongodb": "~1.6",
+        "psr/log": "~1.1"
     },
     "require-dev":{
         "phpunit/phpunit": "^9"
