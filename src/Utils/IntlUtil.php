@@ -1,12 +1,14 @@
 <?php
 namespace InteractivePlus\PDK2020Core\Utils;
 
+use InteractivePlus\PDK2020Core\Intl\SupportedAreas;
+use InteractivePlus\PDK2020Core\Intl\SupportedLanguages;
 use InteractivePlus\PDK2020Core\Settings\Setting;
 
 class IntlUtil{
     public static function fixCountry(string $country = '') : string{
         if(!empty($country)){
-            return $country;
+            return SupportedAreas::fixSupportedArea($country);
         }else{
             return Setting::DEFAULT_COUNTRY;
         }
@@ -16,7 +18,7 @@ class IntlUtil{
     }
     public static function fixLocale(string $locale = '') : string{
         if(!empty($locale)){
-            return $locale;
+            return SupportedLanguages::fixSupportedLanguage($locale);
         }else{
             return Setting::DEFAULT_LOCALE;
         }

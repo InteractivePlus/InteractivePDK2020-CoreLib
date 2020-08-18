@@ -15,9 +15,7 @@ use InteractivePlus\PDK2020Core\Formats\UserFormat;
 use InteractivePlus\PDK2020Core\OAuth;
 use InteractivePlus\PDK2020Core\VerificationCodes\VeriCode;
 use libphonenumber\PhoneNumber;
-use League\OAuth2\Server\Entities\UserEntityInterface;
-
-class User implements UserEntityInterface{
+class User{
     protected $_Database;
     private $_dataTime = 0;
     private $_lastDataArray = NULL;
@@ -46,16 +44,6 @@ class User implements UserEntityInterface{
 
     private function __construct(){
 
-    }
-
-    /**
-     * @see UserEntityInterface
-     * Return the user's identifier
-     * @return int User identifier int(uid)
-     */
-    public function getIdentifier() : int
-    {
-        return $this->getUID();
     }
 
     public function getDatabase() : MysqliDb{
