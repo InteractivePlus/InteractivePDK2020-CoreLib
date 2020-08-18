@@ -527,7 +527,7 @@ class User implements UserEntityInterface{
 
     public static function fromUID(MysqliDb $Database, int $uid) : User{
         if($uid <= 0){
-            throw new PDKException(30002,'Username format incorrect',array('credential'=>'username'));
+            throw new PDKException(30002,'UID format incorrect',array('credential'=>'uid'));
         }
         $Database->where('uid',$uid);
         $dataRow = $Database->getOne('user_infos');
