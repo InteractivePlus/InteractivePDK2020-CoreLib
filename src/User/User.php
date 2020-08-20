@@ -390,8 +390,6 @@ class User{
         //Update New UID
         $newUID = $this->getDatabase()->getValue('user_infos','last_insert_id()');
         $this->_uid = $newUID;
-
-        $this->_lastDataArray['uid'] = $newUID;
     }
 
     public function saveToDatabase() : void{
