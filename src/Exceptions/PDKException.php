@@ -4,7 +4,7 @@ class PDKException extends \Exception{
     private $err_params = null;
     public function __construct(int $code = 0, string $message = '', ?array $errParams = null, ?\Exception $previous = null){
         $this->err_params = $errParams;
-        parent::__construct($message,$code,null,$previous);
+        parent::__construct($message,$code,$previous);
     }
     public function getErrorParams() : array{
         return $this->err_params;
