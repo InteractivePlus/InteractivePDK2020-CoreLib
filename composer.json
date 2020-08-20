@@ -16,7 +16,7 @@
     },
     "autoload":{
         "psr-4":{
-            "InteracitvePlus\\PDK2020Core\\": "src/"
+            "InteractivePlus\\PDK2020Core\\": "src/"
         }
     },
     "autoload-dev":{
