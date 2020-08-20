@@ -349,6 +349,9 @@ class User{
             $oldDataArray = $this->_lastDataArray;
             $differenceArray = \InteractivePlus\PDK2020Core\Utils\DataUtil::compareDataArrayDifference($newDataArray,$oldDataArray);
         }
+        if(empty($differenceArray)){
+            return;
+        }
         $this->_Database->where('uid',$this->_uid);
         $updateRst = $this->_Database->update('user_infos',$differenceArray);
         if(!$updateRst){
@@ -387,6 +390,8 @@ class User{
         //Update New UID
         $newUID = $this->getDatabase()->getValue('user_infos','last_insert_id()');
         $this->_uid = $newUID;
+
+        $this->_lastDataArray['uid'] = $newUID;
     }
 
     public function saveToDatabase() : void{
