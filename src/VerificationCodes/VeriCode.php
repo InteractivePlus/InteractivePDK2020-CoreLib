@@ -261,7 +261,6 @@ class VeriCode{
         if(self::checkVeriCodeExist($Database,$actualCode)){
             if(!empty($customVeriCode)){
                 throw new PDKException(80003, 'Verification Code already exist');
-                return;
             }
             //regenerate actual VeriCode and return the new VeriCode.
             return self::createNewCode($Database,$user,$actionId,$actionParam,$client_ip,$customVeriCode);
