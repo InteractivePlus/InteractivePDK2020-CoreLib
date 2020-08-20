@@ -168,6 +168,9 @@ class VeriCode{
             $oldDataArray = $this->_lastDataArray;
             $differenceArray = \InteractivePlus\PDK2020Core\Utils\DataUtil::compareDataArrayDifference($newDataArray,$oldDataArray);
         }
+        if(empty($differenceArray)){
+            return;
+        }
         $this->_Database->where('code',$this->_veriCode);
         $updateRst = $this->_Database->update('verification_codes',$differenceArray);
         if(!$updateRst){
