@@ -5,7 +5,7 @@ use InteractivePlus\PDK2020Core\Exceptions\PDKException;
 use InteractivePlus\PDK2020Core\Settings\Setting;
 class TemplateFileUtil{
     public static function getEmailTemplateContent(int $actionID, string $language) : string{
-        $path = PathUtil::getTemplatePath() . '/templates/email/' . $language . '/verification_' . $actionID . '.tpl';
+        $path = PathUtil::getTemplatePath() . '/email/' . $language . '/verification_' . $actionID . '.tpl';
         if(file_exists($path)){
             return file_get_contents($path);
         }else{
@@ -16,7 +16,7 @@ class TemplateFileUtil{
         }
     }
     public static function getEmailTemplateTitle(int $actionID, string $language) : string{
-        $path = PathUtil::getTemplatePath() . '/templates/email/' . $language . '/verification_' . $actionID . '.title';
+        $path = PathUtil::getTemplatePath() . '/email/' . $language . '/verification_' . $actionID . '.title';
         if(file_exists($path)){
             return file_get_contents($path);
         }else{
@@ -27,7 +27,7 @@ class TemplateFileUtil{
         }
     }
     public static function getSMSTemplateContent(int $actionID, string $language) : string{
-        $path = PathUtil::getTemplatePath() . '/templates/SMS/' . $language . '/verification_' . $actionID . '.tpl';
+        $path = PathUtil::getTemplatePath() . '/SMS/' . $language . '/verification_' . $actionID . '.tpl';
         if(file_exists($path)){
             return file_get_contents($path);
         }else{
