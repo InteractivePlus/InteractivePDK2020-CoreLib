@@ -310,7 +310,7 @@ class VeriCode{
         return $returnObj;
     }
 
-    public static function getSearchResults(MysqliDb $Database, int $action_id = -1, int $expireLow = -1, int $expireHigh = -1, int $uid = '', int $numLimit = -1, int $offset = 0, string $CONNECT_OPERATOR = 'AND') : MultipleQueryResult{
+    public static function getSearchResults(MysqliDb $Database, int $action_id = -1, int $expireLow = -1, int $expireHigh = -1, int $uid = -1, int $numLimit = -1, int $offset = 0, string $CONNECT_OPERATOR = 'AND') : MultipleQueryResult{
         $returnArr = array();
         if($action_id != -1){
             $Database->where('action_id',$action_id,'=',$CONNECT_OPERATOR);
@@ -321,7 +321,7 @@ class VeriCode{
         if($expireHigh != -1){
             $Database->where('expire_time',$expireHigh,'<=', $CONNECT_OPERATOR);
         }
-        if(!empty($uid)){
+        if($uid != -1){
             $Database->where('uid',$uid,'=', $CONNECT_OPERATOR);
         }
         $limitParam = NULL;
