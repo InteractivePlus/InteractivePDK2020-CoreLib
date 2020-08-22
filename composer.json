@@ -6,7 +6,7 @@
     "require":{
         "php": ">=7.1.0",
         "phpmailer/phpmailer":"~6.1",
-        "thingengineer/mysqli-database-class": "~2.9",
+        "thingengineer/mysqli-database-class": "dev-master",
         "giggsey/libphonenumber-for-php": "~8.12",
         "mongodb/mongodb": "~1.6",
         "psr/log": "~1.1"
