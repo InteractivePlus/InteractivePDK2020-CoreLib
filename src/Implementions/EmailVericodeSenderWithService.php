@@ -200,6 +200,7 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
         $this->getServiceProvider()->setSubject($generatedTitle);
         $this->getServiceProvider()->setBody($generatedHTMLContent);
         $this->getServiceProvider()->addToAccount($toEmail,$verificationCode->getUser()->getDisplayName());
+        $this->getServiceProvider()->setCharset(mb_detect_encoding($generatedHTMLContent));
         $sendResult = $this->getServiceProvider()->send();
         if(!$sendResult){
             throw new PDKException(50003,'Failed to send email');

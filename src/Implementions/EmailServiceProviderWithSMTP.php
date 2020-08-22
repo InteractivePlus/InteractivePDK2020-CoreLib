@@ -68,6 +68,10 @@ class EmailServiceProviderWithSMTP extends EmailServiceProvider{
         $this->_fromEmail = $fromEmail;
         $this->_smtpClient->setFrom($fromEmail,$this->_fromName);
     }
+    public function setCharset(string $charset = 'UTF-8'): void
+    {
+        $this->_smtpClient->CharSet = $charset;
+    }
     public function send() : bool{
         return $this->_smtpClient->send();
     }

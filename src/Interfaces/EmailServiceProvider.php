@@ -14,6 +14,7 @@ abstract class EmailServiceProvider{
     public abstract function clearAttachments() : void;
     public abstract function setFromName(string $fromName = '') : void;
     public abstract function setFromEmail(string $fromEmail = '') : void;
+    public abstract function setCharset(string $charset = 'UTF-8') : void;
     public function clear(){
         $this->clearToAccount();
         $this->clearCCAcount();
