@@ -196,6 +196,7 @@ class EmailVericodeSenderWithService implements \InteractivePlus\PDK2020Core\Int
         $this->getServiceProvider()->clear();
 
         //Let's send!
+        $this->getServiceProvider()->setFromName(IntlUtil::getMultiLangVal($language,Setting::USER_SYSTEM_NAME));
         $this->getServiceProvider()->setSubject($generatedTitle);
         $this->getServiceProvider()->setBody($generatedHTMLContent);
         $this->getServiceProvider()->addToAccount($toEmail,$verificationCode->getUser()->getDisplayName());

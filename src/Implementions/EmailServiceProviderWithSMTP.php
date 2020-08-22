@@ -1,6 +1,7 @@
 <?php
 namespace InteractivePlus\PDK2020Core\Implementions;
 use InteractivePlus\PDK2020Core\Interfaces\EmailServiceProvider;
+use InteractivePlus\PDK2020Core\Settings\Setting;
 use PHPMailer\PHPMailer\PHPMailer;
 
 class EmailServiceProviderWithSMTP extends EmailServiceProvider{
@@ -23,6 +24,7 @@ class EmailServiceProviderWithSMTP extends EmailServiceProvider{
         $this->_smtpClient->Port = $port;
         $this->_smtpClient->SMTPSecure = $smtpSecure;
         $this->_fromEmail = $username;
+        $this->setFromEmail($username);
     }
     public function addToAccount(string $address, string $name = '') : void{
         $this->_smtpClient->addAddress($address,$name);
